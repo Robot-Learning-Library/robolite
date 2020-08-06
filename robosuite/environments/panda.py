@@ -11,6 +11,56 @@ from robosuite.models.robots import Panda
 class PandaEnv(MujocoEnv):
     """Initializes a Panda robot environment."""
 
+    parameters_spec = {
+        'link1_mass': [2.9, 3.1],
+        'link2_mass': [2.9, 3.1],
+        'link3_mass': [1.9, 2.1],
+        'link4_mass': [1.9, 2.1],
+        'link5_mass': [1.9, 2.1],
+        'link6_mass': [1.4, 1.6],
+        'link7_mass': [0.4, 0.6],
+        'joint1_damping': [0.06, 0.14],
+        'joint2_damping': [0.06, 0.14],
+        'joint3_damping': [0.06, 0.14],
+        'joint4_damping': [0.06, 0.14],
+        'joint5_damping': [0.06, 0.14],
+        'joint6_damping': [0.006, 0.014],
+        'joint7_damping': [0.006, 0.014],
+        'joint1_armature': [0.0, 0.5],    # armature default 0
+        'joint2_armature': [0.0, 0.5],    # armature default 0
+        'joint3_armature': [0.0, 0.5],    # armature default 0
+        'joint4_armature': [0.0, 0.5],    # armature default 0
+        'joint5_armature': [0.0, 0.5],    # armature default 0
+        'joint6_armature': [0.0, 0.5],    # armature default 0
+        'joint7_armature': [0.0, 0.5],    # armature default 0
+        # [TODO] is joint*_frictionloss necessary?
+    }
+
+    parameters_defaults = {
+        'link1_mass': 3.0,
+        'link2_mass': 3.0,
+        'link3_mass': 2.0,
+        'link4_mass': 2.0,
+        'link5_mass': 2.0,
+        'link6_mass': 1.5,
+        'link7_mass': 0.5,
+        'joint1_damping': 0.1,
+        'joint2_damping': 0.1,
+        'joint3_damping': 0.1,
+        'joint4_damping': 0.1,
+        'joint5_damping': 0.1,
+        'joint6_damping': 0.01,
+        'joint7_damping': 0.01,
+        'joint1_armature': 0.0,
+        'joint2_armature': 0.0,
+        'joint3_armature': 0.0,
+        'joint4_armature': 0.0,
+        'joint5_armature': 0.0,
+        'joint6_armature': 0.0,
+        'joint7_armature': 0.0,
+        # [TODO] is joint*_frictionloss necessary?
+    }
+
     def __init__(
         self,
         gripper_type=None,
@@ -90,6 +140,16 @@ class PandaEnv(MujocoEnv):
             camera_width=camera_width,
             camera_depth=camera_depth,
         )
+
+    def reset_props(self, **kwargs):
+        params_dict = dict(self.parameters_defaults, **kwargs)
+        for link in self.mujoco_robot._link_body:
+            lie = self.mujoco_robot.root.find(".//body[@name='{}']".format(link)).find("./inertial[@mass]")
+            lie.set('mass', str(params_dict['{}_mass'.format(link)]))
+        for joint in self.mujoco_robot._joints:
+            je = self.mujoco_robot.root.find(".//joint[@name='{}']".format(joint))
+            je.set('damping', str(params_dict['{}_damping'.format(joint)]))
+            je.set('armature', str(params_dict['{}_armature'.format(joint)]))
 
     def _load_model(self):
         """
