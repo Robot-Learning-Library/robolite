@@ -148,6 +148,21 @@ class MujocoEnv(metaclass=EnvMeta):
         self.sim.forward()
         return self._get_observation()
 
+    def init_viewer(self):
+        print('init_viewer', self.viewer)
+        
+        if self.has_offscreen_renderer:
+            print('WARNING from GZZ: robosuite has a bug on simutaneously rendering for both offscreen (like camera obs) and onscreen (X window), and will give (at least) onscreen `black screen of death` after a reset. Please check their issue: https://github.com/StanfordVL/robosuite/issues/25 . I failed to help them debug on this.')
+            
+        self.viewer = MujocoPyRenderer(self.sim)
+        self.viewer.viewer.vopt.geomgroup[0] = (
+            1 if self.render_collision_mesh else 0
+        )
+        self.viewer.viewer.vopt.geomgroup[1] = 1 if self.render_visual_mesh else 0
+
+        # hiding the overlay speeds up rendering significantly
+        self.viewer.viewer._hide_overlay = True
+
     def _reset_internal(self):
         """Resets simulation internal configurations."""
         # instantiate simulation from MJCF model
@@ -158,14 +173,7 @@ class MujocoEnv(metaclass=EnvMeta):
 
         # create visualization screen or renderer
         if self.has_renderer and self.viewer is None:
-            self.viewer = MujocoPyRenderer(self.sim)
-            self.viewer.viewer.vopt.geomgroup[0] = (
-                1 if self.render_collision_mesh else 0
-            )
-            self.viewer.viewer.vopt.geomgroup[1] = 1 if self.render_visual_mesh else 0
-
-            # hiding the overlay speeds up rendering significantly
-            self.viewer.viewer._hide_overlay = True
+            self.init_viewer()
 
         elif self.has_offscreen_renderer:
             if self.sim._render_context_offscreen is None:
@@ -223,6 +231,10 @@ class MujocoEnv(metaclass=EnvMeta):
         """
         Renders to an on-screen window.
         """
+        if self.viewer is None:
+            self.has_renderer = True
+            self.init_viewer()
+            
         self.viewer.render()
 
     def observation_spec(self):
@@ -263,14 +275,7 @@ class MujocoEnv(metaclass=EnvMeta):
         self.sim = MjSim(self.mjpy_model)
         self.initialize_time(self.control_freq)
         if self.has_renderer and self.viewer is None:
-            self.viewer = MujocoPyRenderer(self.sim)
-            self.viewer.viewer.vopt.geomgroup[0] = (
-                1 if self.render_collision_mesh else 0
-            )
-            self.viewer.viewer.vopt.geomgroup[1] = 1 if self.render_visual_mesh else 0
-
-            # hiding the overlay speeds up rendering significantly
-            self.viewer.viewer._hide_overlay = True
+            self.init_viewer()
 
         elif self.has_offscreen_renderer:
             render_context = MjRenderContextOffscreen(self.sim)
@@ -319,6 +324,7 @@ class MujocoEnv(metaclass=EnvMeta):
         return False
 
     def _destroy_viewer(self):
+        print('_destroy_viewer', self.viewer)
         # if there is an active viewer window, destroy it
         if self.viewer is not None:
             self.viewer.close()  # change this to viewer.finish()?
