@@ -22,7 +22,7 @@ class PandaLift(PandaEnv):
         table_friction=(1., 5e-3, 1e-4),
         use_camera_obs=False,
         use_object_obs=True,
-        reward_shaping=False,
+        reward_shaping=True,
         placement_initializer=None,
         gripper_visualization=False,
         use_indicator_object=False,
