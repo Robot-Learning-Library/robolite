@@ -39,6 +39,8 @@ class EnvMeta(type):
 class MujocoEnv(metaclass=EnvMeta):
     """Initializes a Mujoco Environment."""
 
+    parameters_spec = {}
+
     def __init__(
         self,
         has_renderer=False,

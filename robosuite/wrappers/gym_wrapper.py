@@ -32,7 +32,7 @@ class GymWrapper(Wrapper):
         # set up observation and action spaces
         flat_ob = self._flatten_obs(self.env.reset(), verbose=True)
         self.obs_dim = flat_ob.size
-        high = np.inf * np.ones(self.obs_dim)
+        high = np.inf * np.ones(self.obs_dim, dtype=np.float32)
         low = -high
         self.observation_space = spaces.Box(low=low, high=high)
         low, high = self.env.action_spec

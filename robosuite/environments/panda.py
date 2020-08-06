@@ -281,8 +281,8 @@ class PandaEnv(MujocoEnv):
         """
         Action lower/upper limits per dimension.
         """
-        low = np.ones(self.dof) * -1.
-        high = np.ones(self.dof) * 1.
+        low = np.ones(self.dof, dtype=np.float32) * -1.
+        high = np.ones(self.dof, dtype=np.float32) * 1.
         return low, high
 
     @property
