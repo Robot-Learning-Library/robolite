@@ -355,6 +355,19 @@ class PandaEnv(MujocoEnv):
             dof += self.gripper.dof
         return dof
 
+    def pose_in_base(self, pose_in_world):
+        """
+        A helper function that takes in a pose in world frame and returns that pose in  the
+        the base frame.
+        """
+        base_pos_in_world = self.sim.data.get_body_xpos("base")
+        base_rot_in_world = self.sim.data.get_body_xmat("base").reshape((3, 3))
+        base_pose_in_world = T.make_pose(base_pos_in_world, base_rot_in_world)
+        world_pose_in_base = T.pose_inv(base_pose_in_world)
+
+        pose_in_base = T.pose_in_A_to_pose_in_B(pose_in_world, world_pose_in_base)
+        return pose_in_base
+
     def pose_in_base_from_name(self, name):
         """
         A helper function that takes in a named data field and returns the pose
