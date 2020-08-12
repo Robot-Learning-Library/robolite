@@ -4,6 +4,8 @@ movements instead of joint velocities. This is useful in learning pipelines
 that want to output actions in end effector space instead of joint space.
 """
 
+assert 0, 'incomplete implementation'
+
 import os
 import numpy as np
 import robosuite
@@ -15,7 +17,7 @@ from robosuite.kdl.panda_eef_velocity_controller import PandaEEFVelocityControll
 class EEFXVelocityControl(Wrapper):
     env = None
 
-    def __init__(self, env, dof = 3, max_action = 0.1, normalised_actions = True):
+    def __init__(self, env, fix_z = False, fix_pos = False, max_action = 0.1, normalised_actions = True):
         """
         End effector cartesian velocity control wrapper.
 
@@ -31,17 +33,21 @@ class EEFXVelocityControl(Wrapper):
         """
         super().__init__(env)
         self.controller = PandaEEFVelocityController()
-        assert dof == 2 or dof == 3 , "Can only send x-y or x-y-z velocity commands"
+        # assert dof == 2 or dof == 3 , "Can only send x-y or x-y-z velocity commands"
 
-        self.wrapper_dof = dof
-        self.action_range = [-max_action, max_action]
+        # self.wrapper_dof = dof
+        # self.action_range = [-max_action, max_action]
+        self.fix_z = fix_z
+        self.fix_pos = fix_pos
 
         self.normalised_actions = normalised_actions
-
 
         #Desable the action spec
         self.env.normalised_actions = False
 
+    @property
+    def wrapper_dof(self):
+        return 2 + (0 if self.fix_z else 1) + (0 if self.fix_pos else 4)
 
     @property
     def action_spec(self):
@@ -93,6 +99,7 @@ class EEFXVelocityControl(Wrapper):
         current_right_hand_pos_base = self.env._right_hand_pos
         current_right_hand_pos_eef = self.env.init_right_hand_orn.dot(current_right_hand_pos_base)
 
+        
 
         if(self.wrapper_dof == 2):
             #This only works for the pushing task
