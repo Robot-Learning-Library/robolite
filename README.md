@@ -1,3 +1,8 @@
+# Robolite
+This is a fork of [Surreal Robotics Suite](https://github.com/StanfordVL/robosuite) that enables abundant support to **domain randomization**.
+
+----
+
 # Surreal Robotics Suite
 
 ## Latest Updates
