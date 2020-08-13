@@ -34,6 +34,15 @@ class PandaEnv(MujocoEnv):
         'joint6_armature': [0.0, 0.5],    # armature default 0
         'joint7_armature': [0.0, 0.5],    # armature default 0
         # [TODO] is joint*_frictionloss necessary?
+        'actuator_velocity_joint1_kv': [30.0, 50.0],
+        'actuator_velocity_joint2_kv': [30.0, 50.0],
+        'actuator_velocity_joint3_kv': [30.0, 50.0],
+        'actuator_velocity_joint4_kv': [30.0, 50.0],
+        'actuator_velocity_joint5_kv': [30.0, 50.0],
+        'actuator_velocity_joint6_kv': [30.0, 50.0],
+        'actuator_velocity_joint7_kv': [30.0, 50.0],
+        'actuator_position_finger_joint1_kp_1000000': [0.6, 1.4],    # will be multiplied by 1e6
+        'actuator_position_finger_joint2_kp_1000000': [0.6, 1.4],
     }
 
     def __init__(
@@ -140,6 +149,15 @@ class PandaEnv(MujocoEnv):
             'joint6_armature': 0.0,
             'joint7_armature': 0.0,
             # [TODO] is joint*_frictionloss necessary?
+            'actuator_velocity_joint1_kv': 40.0,
+            'actuator_velocity_joint2_kv': 40.0,
+            'actuator_velocity_joint3_kv': 40.0,
+            'actuator_velocity_joint4_kv': 40.0,
+            'actuator_velocity_joint5_kv': 40.0,
+            'actuator_velocity_joint6_kv': 40.0,
+            'actuator_velocity_joint7_kv': 40.0,
+            'actuator_position_finger_joint1_kp_1000000': 1.0,    # will be multiplied by 1e6
+            'actuator_position_finger_joint2_kp_1000000': 1.0,
         }
 
         assert(key in parameters_defaults for key in kwargs)  # as this is top-level implementation, we must check here.
@@ -147,11 +165,23 @@ class PandaEnv(MujocoEnv):
         
         for link in self.mujoco_robot._link_body:
             lie = self.mujoco_robot.root.find(".//body[@name='{}']".format(link)).find("./inertial[@mass]")
+            # <inertial pos="0 0 -0.07" mass="3" diaginertia="0.3 0.3 0.3" />
             lie.set('mass', str(params_dict['{}_mass'.format(link)]))
+            
         for joint in self.mujoco_robot._joints:
             je = self.mujoco_robot.root.find(".//joint[@name='{}']".format(joint))
+            # <joint name="joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-2.8973 2.8973" damping="0.1"/>
             je.set('damping', str(params_dict['{}_damping'.format(joint)]))
             je.set('armature', str(params_dict['{}_armature'.format(joint)]))
+
+            avje = self.mujoco_robot.root.find(".//velocity[@joint='{}']".format(joint))
+            # <velocity ctrllimited="true" ctrlrange="-2.1750 2.1750" joint="joint1" kv="40.0" name="vel_right_j1"/>
+            avje.set('kv', str(params_dict['actuator_velocity_{}_kv'.format(joint)]))
+
+        for gripper_joint in self.gripper_joints:
+            gpvje = self.mujoco_robot.root.find(".//position[@joint='{}']".format(gripper_joint))
+            # <position ctrllimited="true" ctrlrange="0.0 0.04" forcelimited="true" forcerange="-20 20" joint="finger_joint1" kp="1000000" name="gripper_joint1" />
+            gpvje.set('kp', str(params_dict['actuator_position_{}_kp_1000000'.format(gripper_joint)] * 1000000.0))
 
     def _load_model(self):
         """
