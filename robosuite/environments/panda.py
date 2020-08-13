@@ -36,31 +36,6 @@ class PandaEnv(MujocoEnv):
         # [TODO] is joint*_frictionloss necessary?
     }
 
-    parameters_defaults = {
-        'link1_mass': 3.0,
-        'link2_mass': 3.0,
-        'link3_mass': 2.0,
-        'link4_mass': 2.0,
-        'link5_mass': 2.0,
-        'link6_mass': 1.5,
-        'link7_mass': 0.5,
-        'joint1_damping': 0.1,
-        'joint2_damping': 0.1,
-        'joint3_damping': 0.1,
-        'joint4_damping': 0.1,
-        'joint5_damping': 0.1,
-        'joint6_damping': 0.01,
-        'joint7_damping': 0.01,
-        'joint1_armature': 0.0,
-        'joint2_armature': 0.0,
-        'joint3_armature': 0.0,
-        'joint4_armature': 0.0,
-        'joint5_armature': 0.0,
-        'joint6_armature': 0.0,
-        'joint7_armature': 0.0,
-        # [TODO] is joint*_frictionloss necessary?
-    }
-
     def __init__(
         self,
         gripper_type=None,
@@ -142,7 +117,34 @@ class PandaEnv(MujocoEnv):
         )
 
     def reset_props(self, **kwargs):
-        params_dict = dict(self.parameters_defaults, **kwargs)
+        parameters_defaults = {
+            'link1_mass': 3.0,
+            'link2_mass': 3.0,
+            'link3_mass': 2.0,
+            'link4_mass': 2.0,
+            'link5_mass': 2.0,
+            'link6_mass': 1.5,
+            'link7_mass': 0.5,
+            'joint1_damping': 0.1,
+            'joint2_damping': 0.1,
+            'joint3_damping': 0.1,
+            'joint4_damping': 0.1,
+            'joint5_damping': 0.1,
+            'joint6_damping': 0.01,
+            'joint7_damping': 0.01,
+            'joint1_armature': 0.0,
+            'joint2_armature': 0.0,
+            'joint3_armature': 0.0,
+            'joint4_armature': 0.0,
+            'joint5_armature': 0.0,
+            'joint6_armature': 0.0,
+            'joint7_armature': 0.0,
+            # [TODO] is joint*_frictionloss necessary?
+        }
+
+        assert(key in parameters_defaults for key in kwargs)  # as this is top-level implementation, we must check here.
+        params_dict = dict(parameters_defaults, **kwargs)
+        
         for link in self.mujoco_robot._link_body:
             lie = self.mujoco_robot.root.find(".//body[@name='{}']".format(link)).find("./inertial[@mass]")
             lie.set('mass', str(params_dict['{}_mass'.format(link)]))
