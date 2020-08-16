@@ -35,49 +35,30 @@ class PandaPush(PandaEnv):
         'boxobject_density_1000': [0.6, 1.4],
     }
 
+    dof = 8
+
     def reset_props(self,
                     table_size_0=0.8, table_size_1=0.8, table_size_2=0.8,
                     table_friction_0=1.0, table_friction_1=0.005, table_friction_2=0.0001,
                     boxobject_size_0=0.020, boxobject_size_1=0.020, boxobject_size_2=0.020,
                     boxobject_friction_0=1.0, boxobject_friction_1=0.005, boxobject_friction_2=0.0001,
-                    boxobject_density=1.0,
+                    boxobject_density_1000=1.0,
                     **kwargs):
+        
         self.table_full_size = (table_size_0, table_size_1, table_size_2)
         self.table_friction = (table_friction_0, table_friction_1, table_friction_2)
         self.boxobject_size = (boxobject_size_0, boxobject_size_1, boxobject_size_2)
         self.boxobject_friction = (boxobject_friction_0, boxobject_friction_1, boxobject_friction_2)
-        self.boxobject_density = boxobject_density * 1000.
+        self.boxobject_density = boxobject_density_1000 * 1000.
         super().reset_props(**kwargs)
 
-    def __init__(
-        self,
-        gripper_type="PandaGripper",
-        use_camera_obs=False,
-        use_object_obs=True,
-        reward_shaping=True,
-        placement_initializer=None,
-        gripper_visualization=False,
-        use_indicator_object=False,
-        has_renderer=False,
-        has_offscreen_renderer=False,
-        render_collision_mesh=False,
-        render_visual_mesh=True,
-        control_freq=10,
-        horizon=1000,
-        ignore_done=False,
-        camera_name="frontview",
-        camera_height=256,
-        camera_width=256,
-        camera_depth=False,
-    ):
+    def __init__(self,
+                 use_object_obs=True,
+                 reward_shaping=True,
+                 placement_initializer=None,
+                 **kwargs):
         """
         Args:
-
-            gripper_type (str): type of gripper, used to instantiate
-                gripper models from gripper factory.
-
-            use_camera_obs (bool): if True, every observation includes a
-                rendered image.
 
             use_object_obs (bool): if True, include object (cube) information in
                 the observation.
@@ -87,40 +68,6 @@ class PandaPush(PandaEnv):
             placement_initializer (ObjectPositionSampler instance): if provided, will
                 be used to place objects on every reset, else a UniformRandomSampler
                 is used by default.
-
-            gripper_visualization (bool): True if using gripper visualization.
-                Useful for teleoperation.
-
-            use_indicator_object (bool): if True, sets up an indicator object that
-                is useful for debugging.
-
-            has_renderer (bool): If true, render the simulation state in
-                a viewer instead of headless mode.
-
-            has_offscreen_renderer (bool): True if using off-screen rendering.
-
-            render_collision_mesh (bool): True if rendering collision meshes
-                in camera. False otherwise.
-
-            render_visual_mesh (bool): True if rendering visual meshes
-                in camera. False otherwise.
-
-            control_freq (float): how many control signals to receive
-                in every second. This sets the amount of simulation time
-                that passes between every action input.
-
-            horizon (int): Every episode lasts for exactly @horizon timesteps.
-
-            ignore_done (bool): True if never terminating the environment (ignore @horizon).
-
-            camera_name (str): name of camera to be rendered. Must be
-                set if @use_camera_obs is True.
-
-            camera_height (int): height of camera frame.
-
-            camera_width (int): width of camera frame.
-
-            camera_depth (bool): True if rendering RGB-D, and RGB otherwise.
         """
         
         # whether to use ground-truth object states
@@ -147,23 +94,7 @@ class PandaPush(PandaEnv):
         self.boxobject_friction = (1.0, 0.005, 0.0001)
         self.boxobject_density = 1000.
 
-        super().__init__(
-            gripper_type=gripper_type,
-            gripper_visualization=gripper_visualization,
-            use_indicator_object=use_indicator_object,
-            has_renderer=has_renderer,
-            has_offscreen_renderer=has_offscreen_renderer,
-            render_collision_mesh=render_collision_mesh,
-            render_visual_mesh=render_visual_mesh,
-            control_freq=control_freq,
-            horizon=horizon,
-            ignore_done=ignore_done,
-            use_camera_obs=use_camera_obs,
-            camera_name=camera_name,
-            camera_height=camera_height,
-            camera_width=camera_width,
-            camera_depth=camera_depth,
-        )
+        super().__init__(**kwargs)
 
     def _load_model(self):
         """
@@ -343,6 +274,7 @@ class PandaPush(PandaEnv):
 
             task-state : a concatenation of all the above.
         """
+        # di = super()._get_observation()  # joint angles & vel, which we don't need.
         di = OrderedDict()
 
         # camera observations

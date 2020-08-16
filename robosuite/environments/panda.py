@@ -47,11 +47,11 @@ class PandaEnv(MujocoEnv):
 
     def __init__(
         self,
-        gripper_type=None,
+        gripper_type="PandaGripper",
         gripper_visualization=False,
         use_indicator_object=False,
         has_renderer=False,
-        has_offscreen_renderer=True,
+        has_offscreen_renderer=False,
         render_collision_mesh=False,
         render_visual_mesh=True,
         control_freq=10,
