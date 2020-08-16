@@ -380,6 +380,21 @@ class BoxObject(MujocoGeneratedObject):
         return self._get_visual(name=name, site=site, ob_type="box")
 
 class FullyFrictionalBoxObject(BoxObject):
+    def __init__(
+        self,
+        size=None,
+        density=None,
+        friction=None,
+        rgba="random",
+    ):
+        MujocoGeneratedObject.__init__(
+            self,
+            size=size,
+            rgba=rgba,
+            density=density,
+            friction=friction
+        )
+
     def get_collision_attrib_template(self):
         super_template = super().get_collision_attrib_template()
         super_template['condim'] = '4'
