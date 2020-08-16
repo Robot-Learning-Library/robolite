@@ -11,15 +11,40 @@ from robosuite.models.tasks import TableTopTask, UniformRandomSampler
 
 
 class PandaLift(PandaEnv):
+
     """
     This class corresponds to the lifting task for the Panda robot arm.
     """
+    
+    parameters_spec = {
+        **PandaEnv.parameters_spec,
+        'table_size_0': [0.7, 0.9],
+        'table_size_1': [0.7, 0.9],
+        'table_size_2': [0.7, 0.9],
+        'table_friction_0': [0.4, 1.6],
+        'table_friction_1': [0.0025, 0.0075],
+        'table_friction_2': [0.00005, 0.00015],
+        'boxobject_size_0': [0.018, 0.022],
+        'boxobject_size_1': [0.018, 0.022],
+        'boxobject_size_2': [0.018, 0.022],
+        'boxobject_friction': [0.5, 1.5],      # the contact friction is determined by the maximum one of the two geoms. See http://www.mujoco.org/book/modeling.html#CContact
+    }
+
+    def reset_props(self,
+                    table_size_0=0.8, table_size_1=0.8, table_size_2=0.8,
+                    table_friction_0=1.0, table_friction_1=0.005, table_friction_2=0.0001,
+                    boxobject_size_0=0.020, boxobject_size_1=0.020, boxobject_size_2=0.020,
+                    boxobject_friction=1.0,
+                    **kwargs):
+        self.table_full_size = (table_size_0, table_size_1, table_size_2)
+        self.table_friction = (table_friction_0, table_friction_1, table_friction_2)
+        self.boxobject_size = (boxobject_size_0, boxobject_size_1, boxobject_size_2)
+        self.boxobject_friction = boxobject_friction
+        super().reset_props(**kwargs)
 
     def __init__(
         self,
         gripper_type="PandaGripper",
-        table_full_size=(0.8, 0.8, 0.8),
-        table_friction=(1., 5e-3, 1e-4),
         use_camera_obs=False,
         use_object_obs=True,
         reward_shaping=True,
@@ -43,11 +68,6 @@ class PandaLift(PandaEnv):
 
             gripper_type (str): type of gripper, used to instantiate
                 gripper models from gripper factory.
-
-            table_full_size (3-tuple): x, y, and z dimensions of the table.
-
-            table_friction (3-tuple): the three mujoco friction parameters for
-                the table.
 
             use_camera_obs (bool): if True, every observation includes a
                 rendered image.
@@ -95,11 +115,7 @@ class PandaLift(PandaEnv):
 
             camera_depth (bool): True if rendering RGB-D, and RGB otherwise.
         """
-
-        # settings for table top
-        self.table_full_size = table_full_size
-        self.table_friction = table_friction
-
+        
         # whether to use ground-truth object states
         self.use_object_obs = use_object_obs
 
@@ -116,6 +132,12 @@ class PandaLift(PandaEnv):
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,
             )
+
+        # for first initialization
+        self.table_full_size = (0.8, 0.8, 0.8)
+        self.table_friction = (1.0, 0.005, 0.0001)
+        self.boxobject_size = (0.02, 0.02, 0.02)
+        self.boxobject_friction = 1.0
 
         super().__init__(
             gripper_type=gripper_type,
@@ -153,9 +175,10 @@ class PandaLift(PandaEnv):
         self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
 
         # initialize objects of interest
+        # in original robosuite, a simple domain randomization is included in BoxObject implementation, and called here. We choose to discard that implementation.
         cube = BoxObject(
-            size_min=[0.020, 0.020, 0.020],  # [0.015, 0.015, 0.015],
-            size_max=[0.022, 0.022, 0.022],  # [0.018, 0.018, 0.018])
+            size=self.boxobject_size,
+            friction=self.boxobject_friction,
             rgba=[1, 0, 0, 1],
         )
         self.mujoco_objects = OrderedDict([("cube", cube)])

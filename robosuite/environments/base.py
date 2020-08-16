@@ -141,14 +141,18 @@ class MujocoEnv(metaclass=EnvMeta):
         """
         pass
 
-    def reset(self):
+    def reset(self, **kwargs):
         """Resets simulation."""
         # TODO(yukez): investigate black screen of death
         # if there is an active viewer window, destroy it
         self._destroy_viewer()
+        self.reset_props(**kwargs)
         self._reset_internal()
         self.sim.forward()
         return self._get_observation()
+
+    def reset_props(self):
+        print('INFO from GZZ: this is the base class reset_props. This means the environment does not support domain randomization')
 
     def init_viewer(self):
         print('init_viewer', self.viewer)
