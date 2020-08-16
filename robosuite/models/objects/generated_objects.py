@@ -379,6 +379,11 @@ class BoxObject(MujocoGeneratedObject):
     def get_visual(self, name=None, site=False):
         return self._get_visual(name=name, site=site, ob_type="box")
 
+class FullyFrictionalBoxObject(BoxObject):
+    def get_collision_attrib_template(self):
+        super_template = super().get_collision_attrib_template()
+        super_template['condim'] = '4'
+        return super_template
 
 class CylinderObject(MujocoGeneratedObject):
     """
