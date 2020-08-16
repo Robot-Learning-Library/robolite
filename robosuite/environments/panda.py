@@ -503,6 +503,10 @@ class PandaEnv(MujocoEnv):
         return self.sim.data.qpos[self._ref_joint_pos_indexes]
 
     @property
+    def _joint_ranges(self):
+        return self.sim.model.jnt_range[self._ref_joint_pos_indexes]
+
+    @property
     def _joint_velocities(self):
         """
         Returns a numpy array of joint velocities.

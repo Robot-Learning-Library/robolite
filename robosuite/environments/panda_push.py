@@ -1,16 +1,18 @@
 from collections import OrderedDict
 import numpy as np
+import copy
 
 from robosuite.utils.transform_utils import convert_quat
 from robosuite.environments.panda import PandaEnv
 
+from robosuite.utils import transform_utils as T
+
 from robosuite.models.arenas import TableArena
-from robosuite.models.objects import BoxObject
+from robosuite.models.objects import FullyFrictionalBoxObject, CylinderObject
 from robosuite.models.robots import Panda
 from robosuite.models.tasks import TableTopTask, UniformRandomSampler
 
-
-class PandaLift(PandaEnv):
+class PandaPush(PandaEnv):
 
     """
     This class corresponds to the lifting task for the Panda robot arm.
@@ -27,19 +29,24 @@ class PandaLift(PandaEnv):
         'boxobject_size_0': [0.018, 0.022],
         'boxobject_size_1': [0.018, 0.022],
         'boxobject_size_2': [0.018, 0.022],
-        'boxobject_friction': [0.5, 1.5],      # the contact friction is determined by the maximum one of the two geoms. See http://www.mujoco.org/book/modeling.html#CContact
+        'boxobject_friction_0': [0.4, 1.6],
+        'boxobject_friction_1': [0.0025, 0.0075],
+        'boxobject_friction_2': [0.00005, 0.00015],
+        'boxobject_density_1000': [0.6, 1.4],
     }
 
     def reset_props(self,
                     table_size_0=0.8, table_size_1=0.8, table_size_2=0.8,
                     table_friction_0=1.0, table_friction_1=0.005, table_friction_2=0.0001,
                     boxobject_size_0=0.020, boxobject_size_1=0.020, boxobject_size_2=0.020,
-                    boxobject_friction=1.0,
+                    boxobject_friction_0=1.0, boxobject_friction_1=0.005, boxobject_friction_2=0.0001,
+                    boxobject_density=1.0,
                     **kwargs):
         self.table_full_size = (table_size_0, table_size_1, table_size_2)
         self.table_friction = (table_friction_0, table_friction_1, table_friction_2)
         self.boxobject_size = (boxobject_size_0, boxobject_size_1, boxobject_size_2)
-        self.boxobject_friction = boxobject_friction
+        self.boxobject_friction = (boxobject_friction_0, boxobject_friction_1, boxobject_friction_2)
+        self.boxobject_density = boxobject_density * 1000.
         super().reset_props(**kwargs)
 
     def __init__(
@@ -127,8 +134,8 @@ class PandaLift(PandaEnv):
             self.placement_initializer = placement_initializer
         else:
             self.placement_initializer = UniformRandomSampler(
-                x_range=[-0.03, 0.03],
-                y_range=[-0.03, 0.03],
+                x_range=[-0.1, 0.1],
+                y_range=[-0.1, 0.1],
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,
             )
@@ -137,7 +144,8 @@ class PandaLift(PandaEnv):
         self.table_full_size = (0.8, 0.8, 0.8)
         self.table_friction = (1.0, 0.005, 0.0001)
         self.boxobject_size = (0.02, 0.02, 0.02)
-        self.boxobject_friction = 1.0
+        self.boxobject_friction = (1.0, 0.005, 0.0001)
+        self.boxobject_density = 1000.
 
         super().__init__(
             gripper_type=gripper_type,
@@ -176,12 +184,21 @@ class PandaLift(PandaEnv):
 
         # initialize objects of interest
         # in original robosuite, a simple domain randomization is included in BoxObject implementation, and called here. We choose to discard that implementation.
-        cube = BoxObject(
+        cube = FullyFrictionalBoxObject(
             size=self.boxobject_size,
             friction=self.boxobject_friction,
+            density=self.boxobject_density,
             rgba=[1, 0, 0, 1],
         )
-        self.mujoco_objects = OrderedDict([("cube", cube)])
+        self.mujoco_cube = cube
+
+        goal = CylinderObject(
+            size=[0.03, 0.001],
+            rgba=[0, 1, 0, 1],
+        )
+        self.mujoco_goal = goal
+        
+        self.mujoco_objects = OrderedDict([("cube", cube), ("goal", goal)])
 
         # task includes arena, robot, and objects of interest
         self.model = TableTopTask(
@@ -208,11 +225,16 @@ class PandaLift(PandaEnv):
         ]
         self.cube_geom_id = self.sim.model.geom_name2id("cube")
 
+        # gripper ids
+        self.goal_body_id = self.sim.model.body_name2id('goal')
+        self.goal_site_id = self.sim.model.site_name2id('goal')
+
     def _reset_internal(self):
         """
         Resets simulation internal configurations.
         """
         super()._reset_internal()
+        self.sim.forward()
 
         # reset positions of objects
         self.model.place_objects()
@@ -222,72 +244,107 @@ class PandaLift(PandaEnv):
         init_pos += np.random.randn(init_pos.shape[0]) * 0.02
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
 
+        # set other reference attributes
+        eef_rot_in_world = self.sim.data.get_body_xmat("right_hand").reshape((3, 3))
+        self.world_rot_in_eef = copy.deepcopy(eef_rot_in_world.T)
+
+    # reward function from sawyer_push
     def reward(self, action=None):
         """
         Reward function for the task.
 
         The dense reward has three components.
 
-            Reaching: in [0, 1], to encourage the arm to reach the cube
-            Grasping: in {0, 0.25}, non-zero if arm is grasping the cube
-            Lifting: in {0, 1}, non-zero if arm has lifted the cube
+            Reaching: in [-inf, 0], to encourage the arm to reach the object
+            Goal Distance: in [-inf, 0] the distance between the pushed object and the goal
+            Safety reward in [-inf, 0], -1 for every joint that is at its limit.
 
-        The sparse reward only consists of the lifting component.
+        The sparse reward only receives a {0,1} upon reaching the goal
 
         Args:
-            action (np array): unused for this task
+            action (np array): The action taken in that timestep
 
         Returns:
             reward (float): the reward
+            previously in robosuite-extra, when dense reward is used, the return value will be a dictionary. but we removed that feature.
         """
         reward = 0.
 
         # sparse completion reward
-        if self._check_success():
+        if not self.reward_shaping and self._check_success():
             reward = 1.0
 
-        # use a shaping reward
+        # use a dense reward
         if self.reward_shaping:
+            object_pos = self.sim.data.body_xpos[self.cube_body_id]
+
+            # max joint angles reward
+            joint_limits = self._joint_ranges
+            current_joint_pos = self._joint_positions
+
+            hitting_limits_reward = - int(any([(x < joint_limits[i, 0] + 0.05 or x > joint_limits[i, 1] - 0.05) for i, x in
+                                              enumerate(current_joint_pos)]))
+
+            reward += hitting_limits_reward
 
             # reaching reward
-            cube_pos = self.sim.data.body_xpos[self.cube_body_id]
             gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-            dist = np.linalg.norm(gripper_site_pos - cube_pos)
-            reaching_reward = 1 - np.tanh(10.0 * dist)
+            dist = np.linalg.norm(gripper_site_pos[:2] - object_pos[:2])
+            reaching_reward = -0.1 * dist
             reward += reaching_reward
 
-            # grasping reward
-            touch_left_finger = False
-            touch_right_finger = False
-            for i in range(self.sim.data.ncon):
-                c = self.sim.data.contact[i]
-                if c.geom1 in self.l_finger_geom_ids and c.geom2 == self.cube_geom_id:
-                    touch_left_finger = True
-                if c.geom1 == self.cube_geom_id and c.geom2 in self.l_finger_geom_ids:
-                    touch_left_finger = True
-                if c.geom1 in self.r_finger_geom_ids and c.geom2 == self.cube_geom_id:
-                    touch_right_finger = True
-                if c.geom1 == self.cube_geom_id and c.geom2 in self.r_finger_geom_ids:
-                    touch_right_finger = True
-            if touch_left_finger and touch_right_finger:
-                reward += 0.25
+            # Success Reward
+            success = self._check_success()
+            if (success):
+                reward += 0.1
+
+            # goal distance reward
+            goal_pos = self.sim.data.site_xpos[self.goal_site_id]
+
+            dist = np.linalg.norm(goal_pos[:2] - object_pos[:2])
+            goal_distance_reward = -dist
+            reward += goal_distance_reward
+
+            unstable = reward < -2.5
+
+            # # Return all three types of rewards
+            # reward = {"reward": reward, "reaching_distance": -10 * reaching_reward,
+            #           "goal_distance": - goal_distance_reward,
+            #           "hitting_limits_reward": hitting_limits_reward,
+            #           "unstable":unstable}
 
         return reward
+    
+    def _check_success(self):
+        """
+        Returns True if task has been completed.
+        """
+        object_pos = self.sim.data.body_xpos[self.cube_body_id][:2]
+        goal_pos = self.sim.data.site_xpos[self.goal_site_id][:2]
+
+        dist = np.linalg.norm(goal_pos - object_pos)
+        goal_horizontal_radius = self.model.mujoco_objects['goal'].get_horizontal_radius()
+
+        # object centre is within the goal radius
+        return dist < goal_horizontal_radius
 
     def _get_observation(self):
         """
         Returns an OrderedDict containing observations [(name_string, np.array), ...].
 
         Important keys:
-            robot-state: contains robot-centric information.
-            object-state: requires @self.use_object_obs to be True.
-                contains object-centric information.
-            image: requires @self.use_camera_obs to be True.
-                contains a rendered frame from the simulation.
-            depth: requires @self.use_camera_obs and @self.camera_depth to be True.
-                contains a rendered depth map from the simulation
+            gripper_to_object : The x-y component of the gripper to object distance
+            object_to_goal : The x-y component of the object-to-goal distance
+            object_z_rot : the roation of the object around an axis sticking out the table
+
+            object_xvelp: x-y linear velocity of the object
+            gripper_xvelp: x-y linear velocity of the gripper
+
+
+            task-state : a concatenation of all the above.
         """
-        di = super()._get_observation()
+        di = OrderedDict()
+
         # camera observations
         if self.use_camera_obs:
             camera_obs = self.sim.render(
@@ -303,19 +360,51 @@ class PandaLift(PandaEnv):
 
         # low-level object information
         if self.use_object_obs:
-            # position and rotation of object
-            cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
-            cube_quat = convert_quat(
-                np.array(self.sim.data.body_xquat[self.cube_body_id]), to="xyzw"
-            )
-            di["cube_pos"] = cube_pos
-            di["cube_quat"] = cube_quat
+            # Extract position and velocity of the eef
+            eef_pos_in_world = self.sim.data.get_body_xpos("right_hand")
+            eef_xvelp_in_world = self.sim.data.get_body_xvelp("right_hand")
 
-            gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
-            di["gripper_to_cube"] = gripper_site_pos - cube_pos
+            # Get the position, velocity, rotation  and rotational velocity of the object in the world frame
+            object_pos_in_world = self.sim.data.body_xpos[self.cube_body_id]
+            object_xvelp_in_world = self.sim.data.get_body_xvelp('cube')
+            object_rot_in_world = self.sim.data.get_body_xmat('cube')
 
-            di["object-state"] = np.concatenate(
-                [cube_pos, cube_quat, di["gripper_to_cube"]]
+            # Get the z-angle with respect to the reference position and do sin-cosine encoding
+            world_rotation_in_reference = np.array([[0., 1., 0., ], [-1., 0., 0., ], [0., 0., 1., ]])
+            object_rotation_in_ref = world_rotation_in_reference.dot(object_rot_in_world)
+            object_euler_in_ref = T.mat2euler(object_rotation_in_ref)
+            z_angle = object_euler_in_ref[2]
+
+            # construct vectors for policy observation
+            sine_cosine = np.array([np.sin(8*z_angle), np.cos(8*z_angle)])
+
+            # Get the goal position in the world
+            goal_site_pos_in_world = np.array(self.sim.data.site_xpos[self.goal_site_id])
+
+            # Get the eef to object and object to goal vectors in EEF frame
+            eef_to_object_in_world = object_pos_in_world - eef_pos_in_world
+            eef_to_object_in_eef = self.world_rot_in_eef.dot(eef_to_object_in_world)
+
+            object_to_goal_in_world = goal_site_pos_in_world - object_pos_in_world
+            object_to_goal_in_eef = self.world_rot_in_eef.dot(object_to_goal_in_world)
+
+            # Get the object's and the eef's velocities in EED frame
+            object_xvelp_in_eef = self.world_rot_in_eef.dot(object_xvelp_in_world)
+            eef_xvelp_in_eef = self.world_rot_in_eef.dot(eef_xvelp_in_world)
+
+
+            # Record observations into a dictionary
+            di['goal_pos_in_world'] = goal_site_pos_in_world
+            di['eef_pos_in_world'] = eef_pos_in_world
+            di['eef_vel_in_world'] = eef_xvelp_in_world
+            di['object_pos_in_world'] = object_pos_in_world
+            di['object_vel_in_world'] = object_xvelp_in_world
+            di["z_angle"] = np.array([z_angle])
+
+            di["task-state"] = np.concatenate(
+                [eef_to_object_in_eef[:2],object_to_goal_in_eef[:2],
+                 eef_xvelp_in_eef[:2], object_xvelp_in_eef[:2],
+                 sine_cosine]
             )
 
         return di
@@ -336,15 +425,22 @@ class PandaLift(PandaEnv):
                 break
         return collision
 
-    def _check_success(self):
+    def _check_contact_with(self, object):
         """
-        Returns True if task has been completed.
+        Returns True if gripper is in contact with an object.
         """
-        cube_height = self.sim.data.body_xpos[self.cube_body_id][2]
-        table_height = self.table_full_size[2]
+        collision = False
+        for contact in self.sim.data.contact[: self.sim.data.ncon]:
+            if (
+                    (self.sim.model.geom_id2name(contact.geom1) in self.gripper.contact_geoms()
+                     and contact.geom2 == self.sim.model.geom_name2id(object))
 
-        # cube is higher than the table top above a margin
-        return cube_height > table_height + 0.04
+                    or (self.sim.model.geom_id2name(contact.geom2) in self.gripper.contact_geoms()
+                        and contact.geom1 == self.sim.model.geom_name2id(object))
+            ):
+                collision = True
+                break
+        return collision
 
     def _gripper_visualization(self):
         """
