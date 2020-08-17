@@ -35,7 +35,7 @@ class PandaPush(PandaEnv):
         'boxobject_density_1000': [0.6, 1.4],
     }
 
-    dof = 8
+    dof = 7   # don't need to control a gripper
 
     def reset_props(self,
                     table_size_0=0.8, table_size_1=0.8, table_size_2=0.8,
@@ -175,6 +175,9 @@ class PandaPush(PandaEnv):
         init_pos += np.random.randn(init_pos.shape[0]) * 0.02
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
 
+        # shut the gripper
+        self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes] = np.array([0., -0.])
+
         # set other reference attributes
         eef_rot_in_world = self.sim.data.get_body_xmat("right_hand").reshape((3, 3))
         self.world_rot_in_eef = copy.deepcopy(eef_rot_in_world.T)
@@ -258,6 +261,17 @@ class PandaPush(PandaEnv):
 
         # object centre is within the goal radius
         return dist < goal_horizontal_radius
+
+    def _pre_action(self, action):
+        """ explicitly shut the gripper """
+        joined_action = np.append(action, [1.])
+        self.dof = 8
+        super()._pre_action(joined_action)
+
+    def _post_action(self, action):
+        ret = super()._post_action(action)
+        self.dof = 7
+        return ret
 
     def _get_observation(self):
         """
