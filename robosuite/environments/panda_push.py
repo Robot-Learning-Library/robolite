@@ -137,6 +137,7 @@ class PandaPush(PandaEnv):
             self.mujoco_robot,
             self.mujoco_objects,
             initializer=self.placement_initializer,
+            visual_objects=['goal'],
         )
         self.model.place_objects()
 

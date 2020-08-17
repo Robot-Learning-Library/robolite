@@ -11,19 +11,20 @@ class TableTopTask(Task):
     arena, and the objetcts into a single MJCF model.
     """
 
-    def __init__(self, mujoco_arena, mujoco_robot, mujoco_objects, initializer=None):
+    def __init__(self, mujoco_arena, mujoco_robot, mujoco_objects, initializer=None, visual_objects=[]):
         """
         Args:
             mujoco_arena: MJCF model of robot workspace
             mujoco_robot: MJCF model of robot model
             mujoco_objects: a list of MJCF models of physical objects
             initializer: placement sampler to initialize object positions.
+            visual_objects: (added for pushing task goal,) names of objects that should have conaffinity and contype set to 0
         """
         super().__init__()
 
         self.merge_arena(mujoco_arena)
         self.merge_robot(mujoco_robot)
-        self.merge_objects(mujoco_objects)
+        self.merge_objects(mujoco_objects, visual_objects)
         if initializer is None:
             initializer = UniformRandomSampler()
         mjcfs = [x for _, x in self.mujoco_objects.items()]
@@ -43,7 +44,7 @@ class TableTopTask(Task):
         self.table_size = mujoco_arena.table_full_size
         self.merge(mujoco_arena)
 
-    def merge_objects(self, mujoco_objects):
+    def merge_objects(self, mujoco_objects, visual_objects=[]):
         """Adds physical objects to the MJCF model."""
         self.mujoco_objects = mujoco_objects
         self.objects = []  # xml manifestation
@@ -53,8 +54,12 @@ class TableTopTask(Task):
         for obj_name, obj_mjcf in mujoco_objects.items():
             self.merge_asset(obj_mjcf)
             # Load object
-            obj = obj_mjcf.get_collision(name=obj_name, site=True)
-            obj.append(new_joint(name=obj_name, type="free"))
+            if obj_name in visual_objects:
+                obj = obj_mjcf.get_visual(name=obj_name, site=True)
+            else:
+                obj = obj_mjcf.get_collision(name=obj_name, site=True)
+                obj.append(new_joint(name=obj_name, type="free"))
+                
             self.objects.append(obj)
             self.worldbody.append(obj)
 
