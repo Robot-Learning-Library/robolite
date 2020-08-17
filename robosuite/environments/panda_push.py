@@ -12,7 +12,9 @@ from robosuite.models.objects import FullyFrictionalBoxObject, CylinderObject
 from robosuite.models.robots import Panda
 from robosuite.models.tasks import TableTopTask, UniformRandomSampler
 
-class PandaPush(PandaEnv):
+from robosuite.class_wrappers import change_dof
+
+class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
     """
     This class corresponds to the lifting task for the Panda robot arm.
@@ -34,9 +36,7 @@ class PandaPush(PandaEnv):
         'boxobject_friction_2': [0.00005, 0.00015],
         'boxobject_density_1000': [0.6, 1.4],
     }
-
-    dof = 7   # don't need to control a gripper
-
+    
     def reset_props(self,
                     table_size_0=0.8, table_size_1=0.8, table_size_2=0.8,
                     table_friction_0=1.0, table_friction_1=0.005, table_friction_2=0.0001,
@@ -263,16 +263,10 @@ class PandaPush(PandaEnv):
         # object centre is within the goal radius
         return dist < goal_horizontal_radius
 
-    def _pre_action(self, action):
+    def step(self, action):
         """ explicitly shut the gripper """
         joined_action = np.append(action, [1.])
-        self.dof = 8
-        super()._pre_action(joined_action)
-
-    def _post_action(self, action):
-        ret = super()._post_action(action)
-        self.dof = 7
-        return ret
+        return super().step(joined_action)
 
     def _get_observation(self):
         """
