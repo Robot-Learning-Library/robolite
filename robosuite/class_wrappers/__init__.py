@@ -19,3 +19,4 @@ def change_dof(Env, new_dof, old_dof=None):
     return DOFChangedEnv
 
 from .panda_ik_wrapper import panda_ik_wrapper
+from .obs_noise_wrapper import obs_noise_wrapper

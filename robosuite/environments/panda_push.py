@@ -56,6 +56,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
                  use_object_obs=True,
                  reward_shaping=True,
                  placement_initializer=None,
+                 object_obs_process=True,
                  **kwargs):
         """
         Args:
@@ -68,6 +69,9 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             placement_initializer (ObjectPositionSampler instance): if provided, will
                 be used to place objects on every reset, else a UniformRandomSampler
                 is used by default.
+
+            object_obs_process (bool): if True, process the object observation to get a task_state.
+                Setting this to False is useful when some transformation (eg. noise) need to be done to object observation raw data prior to the processing.
         """
         
         # whether to use ground-truth object states
@@ -93,6 +97,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         self.boxobject_size = (0.02, 0.02, 0.02)
         self.boxobject_friction = (1.0, 0.005, 0.0001)
         self.boxobject_density = 1000.
+
+        self.object_obs_process = object_obs_process
 
         super().__init__(**kwargs)
 
@@ -181,7 +187,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
         # set other reference attributes
         eef_rot_in_world = self.sim.data.get_body_xmat("right_hand").reshape((3, 3))
-        self.world_rot_in_eef = copy.deepcopy(eef_rot_in_world.T)
+        self.world_rot_in_eef = copy.deepcopy(eef_rot_in_world.T)  # TODO inspect on this: should we set a golden reference other than a initial position?
 
     # reward function from sawyer_push
     def reward(self, action=None):
@@ -268,6 +274,55 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         joined_action = np.append(action, [1.])
         return super().step(joined_action)
 
+    def world2eef(self, world):
+        return self.world_rot_in_eef.dot(world)
+
+    def put_raw_object_obs(self, di):
+        # Extract position and velocity of the eef
+        eef_pos_in_world = self.sim.data.get_body_xpos("right_hand")
+        eef_xvelp_in_world = self.sim.data.get_body_xvelp("right_hand")
+
+        # Get the position, velocity, rotation  and rotational velocity of the object in the world frame
+        object_pos_in_world = self.sim.data.body_xpos[self.cube_body_id]
+        object_xvelp_in_world = self.sim.data.get_body_xvelp('cube')
+        object_rot_in_world = self.sim.data.get_body_xmat('cube')
+        
+        # Get the z-angle with respect to the reference position and do sin-cosine encoding
+        world_rotation_in_reference = np.array([[0., 1., 0., ], [-1., 0., 0., ], [0., 0., 1., ]])
+        object_rotation_in_ref = world_rotation_in_reference.dot(object_rot_in_world)
+        object_euler_in_ref = T.mat2euler(object_rotation_in_ref)
+        z_angle = object_euler_in_ref[2]
+        
+        # Get the goal position in the world
+        goal_site_pos_in_world = np.array(self.sim.data.site_xpos[self.goal_site_id])
+
+        # Record observations into a dictionary
+        di['goal_pos_in_world'] = goal_site_pos_in_world
+        di['eef_pos_in_world'] = eef_pos_in_world
+        di['eef_vel_in_world'] = eef_xvelp_in_world
+        di['object_pos_in_world'] = object_pos_in_world
+        di['object_vel_in_world'] = object_xvelp_in_world
+        di["z_angle"] = np.array([z_angle])
+
+    def process_object_obs(self, di):
+        z_angle = di['z_angle']
+        sine_cosine = np.array([np.sin(8*z_angle), np.cos(8*z_angle)]).reshape((2,))
+
+        eef_to_object_in_world = di['object_pos_in_world'] - di['eef_pos_in_world']
+        eef_to_object_in_eef = self.world2eef(eef_to_object_in_world)
+
+        object_to_goal_in_world = di['goal_pos_in_world'] - di['object_pos_in_world']
+        object_to_goal_in_eef = self.world2eef(object_to_goal_in_world)
+
+        object_xvelp_in_eef = self.world2eef(di['object_vel_in_world'])
+        eef_xvelp_in_eef = self.world2eef(di['eef_vel_in_world'])
+
+        task_state = np.concatenate([eef_to_object_in_eef[:2],object_to_goal_in_eef[:2],
+                                     eef_xvelp_in_eef[:2], object_xvelp_in_eef[:2],
+                                     sine_cosine])
+
+        di['task_state'] = task_state
+
     def _get_observation(self):
         """
         Returns an OrderedDict containing observations [(name_string, np.array), ...].
@@ -301,52 +356,9 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
         # low-level object information
         if self.use_object_obs:
-            # Extract position and velocity of the eef
-            eef_pos_in_world = self.sim.data.get_body_xpos("right_hand")
-            eef_xvelp_in_world = self.sim.data.get_body_xvelp("right_hand")
-
-            # Get the position, velocity, rotation  and rotational velocity of the object in the world frame
-            object_pos_in_world = self.sim.data.body_xpos[self.cube_body_id]
-            object_xvelp_in_world = self.sim.data.get_body_xvelp('cube')
-            object_rot_in_world = self.sim.data.get_body_xmat('cube')
-
-            # Get the z-angle with respect to the reference position and do sin-cosine encoding
-            world_rotation_in_reference = np.array([[0., 1., 0., ], [-1., 0., 0., ], [0., 0., 1., ]])
-            object_rotation_in_ref = world_rotation_in_reference.dot(object_rot_in_world)
-            object_euler_in_ref = T.mat2euler(object_rotation_in_ref)
-            z_angle = object_euler_in_ref[2]
-
-            # construct vectors for policy observation
-            sine_cosine = np.array([np.sin(8*z_angle), np.cos(8*z_angle)])
-
-            # Get the goal position in the world
-            goal_site_pos_in_world = np.array(self.sim.data.site_xpos[self.goal_site_id])
-
-            # Get the eef to object and object to goal vectors in EEF frame
-            eef_to_object_in_world = object_pos_in_world - eef_pos_in_world
-            eef_to_object_in_eef = self.world_rot_in_eef.dot(eef_to_object_in_world)
-
-            object_to_goal_in_world = goal_site_pos_in_world - object_pos_in_world
-            object_to_goal_in_eef = self.world_rot_in_eef.dot(object_to_goal_in_world)
-
-            # Get the object's and the eef's velocities in EED frame
-            object_xvelp_in_eef = self.world_rot_in_eef.dot(object_xvelp_in_world)
-            eef_xvelp_in_eef = self.world_rot_in_eef.dot(eef_xvelp_in_world)
-
-
-            # Record observations into a dictionary
-            di['goal_pos_in_world'] = goal_site_pos_in_world
-            di['eef_pos_in_world'] = eef_pos_in_world
-            di['eef_vel_in_world'] = eef_xvelp_in_world
-            di['object_pos_in_world'] = object_pos_in_world
-            di['object_vel_in_world'] = object_xvelp_in_world
-            di["z_angle"] = np.array([z_angle])
-
-            di["task-state"] = np.concatenate(
-                [eef_to_object_in_eef[:2],object_to_goal_in_eef[:2],
-                 eef_xvelp_in_eef[:2], object_xvelp_in_eef[:2],
-                 sine_cosine]
-            )
+            self.put_raw_object_obs(di)
+            if self.object_obs_process:
+                self.process_object_obs(di)
 
         return di
 
