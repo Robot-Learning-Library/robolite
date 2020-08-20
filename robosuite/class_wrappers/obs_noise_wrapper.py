@@ -7,6 +7,7 @@ def obs_noise_wrapper(Env, names, range_var, default):
             var = getattr(env, 'obs_noise_' + name, default)
             obs[name] = obs[name] + np.random.normal(scale=var, size=obs[name].shape)
         return obs
+
     
     class ObservationNoise(Env):
         parameters_spec = {
@@ -25,8 +26,9 @@ def obs_noise_wrapper(Env, names, range_var, default):
             super().reset_props(**p2)
         
         def step(self, action):
-            return add_noise_to(super().step(action))
-
+            obs, reward, done, info = super().step(action)
+            return add_noise_to(self, obs), reward, done, info
+        
         def reset(self, **kwargs):
             return add_noise_to(self, super().reset(**kwargs))
 
