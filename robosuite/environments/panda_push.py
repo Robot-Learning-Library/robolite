@@ -100,7 +100,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
         self.object_obs_process = object_obs_process
 
-        super().__init__(**kwargs)
+        super().__init__(gripper_visualization=True, **kwargs)
 
     def _load_model(self):
         """
@@ -245,6 +245,13 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             dist = np.linalg.norm(goal_pos[:2] - object_pos[:2])
             goal_distance_reward = -dist
             reward += goal_distance_reward
+
+            # print('grippersitepos', gripper_site_pos,
+            #       'objpos', object_pos,
+            #       'jointangles', hitting_limits_reward,
+            #       'reaching', reaching_reward,
+            #       'success', success,
+            #       'goaldist', goal_distance_reward)
 
             unstable = reward < -2.5
 
