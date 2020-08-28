@@ -230,7 +230,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
             # reaching reward
             gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-            dist = np.linalg.norm(gripper_site_pos[:2] - object_pos[:2])
+            dist = np.linalg.norm(gripper_site_pos - object_pos)
             reaching_reward = -0.1 * dist
             reward += reaching_reward
 
@@ -242,7 +242,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             # goal distance reward
             goal_pos = self.sim.data.site_xpos[self.goal_site_id]
 
-            dist = np.linalg.norm(goal_pos[:2] - object_pos[:2])
+            dist = np.linalg.norm(goal_pos - object_pos)
             goal_distance_reward = -dist
             reward += goal_distance_reward
 
@@ -267,8 +267,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         """
         Returns True if task has been completed.
         """
-        object_pos = self.sim.data.body_xpos[self.cube_body_id][:2]
-        goal_pos = self.sim.data.site_xpos[self.goal_site_id][:2]
+        object_pos = self.sim.data.body_xpos[self.cube_body_id]
+        goal_pos = self.sim.data.site_xpos[self.goal_site_id]
 
         dist = np.linalg.norm(goal_pos - object_pos)
         goal_horizontal_radius = self.model.mujoco_objects['goal'].get_horizontal_radius()
@@ -324,8 +324,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         object_xvelp_in_eef = self.world2eef(di['object_vel_in_world'])
         eef_xvelp_in_eef = self.world2eef(di['eef_vel_in_world'])
 
-        task_state = np.concatenate([eef_to_object_in_eef[:2],object_to_goal_in_eef[:2],
-                                     eef_xvelp_in_eef[:2], object_xvelp_in_eef[:2],
+        task_state = np.concatenate([eef_to_object_in_eef,object_to_goal_in_eef,
+                                     eef_xvelp_in_eef, object_xvelp_in_eef,
                                      sine_cosine])
 
         di['task_state'] = task_state

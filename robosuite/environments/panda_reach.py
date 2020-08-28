@@ -207,7 +207,7 @@ class PandaReach(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             # reaching reward
             goal_pos = self.sim.data.site_xpos[self.goal_site_id]
             gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-            dist = np.linalg.norm(gripper_site_pos[:2] - goal_pos[:2])
+            dist = np.linalg.norm(gripper_site_pos - goal_pos)
             reaching_reward = -0.3 * dist
             reward += reaching_reward
 
@@ -236,13 +236,14 @@ class PandaReach(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         """
         Returns True if task has been completed.
         """
-        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id][:2]
-        goal_pos = self.sim.data.site_xpos[self.goal_site_id][:2]
+        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        goal_pos = self.sim.data.site_xpos[self.goal_site_id]
 
         dist = np.linalg.norm(goal_pos - gripper_site_pos)
         goal_horizontal_radius = self.model.mujoco_objects['goal'].get_horizontal_radius()
 
         # gripper centre is within the goal radius
+        # print(gripper_site_pos, goal_pos)
         return dist < goal_horizontal_radius
 
     def step(self, action):
@@ -272,8 +273,8 @@ class PandaReach(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
         eef_xvelp_in_eef = self.world2eef(di['eef_vel_in_world'])
 
-        task_state = np.concatenate([eef_to_goal_in_world[:2], eef_to_goal_in_eef[:2],
-                                     di['eef_vel_in_world'], eef_xvelp_in_eef[:2]])
+        task_state = np.concatenate([eef_to_goal_in_world, eef_to_goal_in_eef,
+                                     di['eef_vel_in_world'], eef_xvelp_in_eef])
 
         di['task_state'] = task_state
 
