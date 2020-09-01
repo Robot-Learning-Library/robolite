@@ -316,16 +316,18 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         sine_cosine = np.array([np.sin(8*z_angle), np.cos(8*z_angle)]).reshape((2,))
 
         eef_to_object_in_world = di['object_pos_in_world'] - di['eef_pos_in_world']
-        eef_to_object_in_eef = self.world2eef(eef_to_object_in_world)
+        # eef_to_object_in_eef = self.world2eef(eef_to_object_in_world)
 
         object_to_goal_in_world = di['goal_pos_in_world'] - di['object_pos_in_world']
-        object_to_goal_in_eef = self.world2eef(object_to_goal_in_world)
+        # object_to_goal_in_eef = self.world2eef(object_to_goal_in_world)
 
-        object_xvelp_in_eef = self.world2eef(di['object_vel_in_world'])
-        eef_xvelp_in_eef = self.world2eef(di['eef_vel_in_world'])
+        # object_xvelp_in_eef = self.world2eef(di['object_vel_in_world'])
+        # eef_xvelp_in_eef = self.world2eef(di['eef_vel_in_world'])
 
-        task_state = np.concatenate([eef_to_object_in_eef,object_to_goal_in_eef,
-                                     eef_xvelp_in_eef, object_xvelp_in_eef,
+        task_state = np.concatenate([eef_to_object_in_world,
+                                     object_to_goal_in_world,
+                                     di['eef_vel_in_world'],
+                                     di['object_vel_in_world'],
                                      sine_cosine])
 
         di['task_state'] = task_state
