@@ -160,7 +160,13 @@ class PandaEnv(MujocoEnv):
             'actuator_position_finger_joint2_kp_1000000': 1.0,
         }
 
-        assert(all(key in parameters_defaults for key in kwargs))  # GZZ: if an error is triggered here, then you must have passed in an invalid parameter keyword to reset(). please check that.
+        if not all(key in parameters_defaults for key in kwargs):
+            for key in kwargs:
+                if key not in parameters_defaults:
+                    print(key, '<- here')
+
+            assert(False)  # GZZ: if an error is triggered here, then you must have passed in an invalid parameter keyword to reset(). please check that.
+            
         params_dict = dict(parameters_defaults, **kwargs)
         
         for link in self.mujoco_robot._link_body:
