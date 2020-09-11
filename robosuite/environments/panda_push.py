@@ -291,6 +291,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         eef_pos_in_world = self.sim.data.get_body_xpos("right_hand")
         eef_xvelp_in_world = self.sim.data.get_body_xvelp("right_hand")
 
+        # print('eef_pos_in_world', eef_pos_in_world)
+
         # Get the position, velocity, rotation  and rotational velocity of the object in the world frame
         object_pos_in_world = self.sim.data.body_xpos[self.cube_body_id]
         object_xvelp_in_world = self.sim.data.get_body_xvelp('cube')

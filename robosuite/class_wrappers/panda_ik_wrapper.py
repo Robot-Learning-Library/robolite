@@ -2,13 +2,14 @@
 Panda inverse kinematics using PyKDL, core by Zihan Ding
 Currently only position control is supported. (that means we have to pass a fixed pose for the end effector)
 When 3-d space is accomodated, the dof is 3. When 2-d space is accomodated, a separate fixed z coordinate should be provided.
+If limit_range is provided as [[xl, xr], [yl, yr]], the ik wrapper will try hard to limit the robot arm within the plane range.
 """
 
 import numpy as np
 from . import change_dof
 from robosuite.kdl.panda_eef_velocity_controller import PandaEEFVelocityController
 
-def panda_ik_wrapper(Env, fix_z=None, max_action=0.1, pose_mat=None):
+def panda_ik_wrapper(Env, fix_z=None, max_action=0.1, pose_mat=None, limit_range=None):
     wrapping_dof = (Env.dof - 7) + (2 if fix_z is not None else 3)
     
     class PandaIK(change_dof(Env, wrapping_dof)):
@@ -49,7 +50,18 @@ def panda_ik_wrapper(Env, fix_z=None, max_action=0.1, pose_mat=None):
             action = np.clip(action, np.ones(self.dof) * -1, np.ones(self.dof) * 1) * max_action
             if fix_z is not None:
                 z_error = current_pos[2] - fix_z
+                # print('fix_z info', current_pos, z_error)
                 action = np.append(action, [z_error * self.z_prop_gain])
+            if limit_range is not None:
+                # print('limit range info', current_pos, action)
+                action = action.copy()
+                action[1] *= -1.   # GZZ: it's strange, but the action on the second dimension have reversed effect.
+                for k in range(2):
+                    if current_pos[k] < limit_range[k][0] and action[k] < 0:
+                        action[k] = 0
+                    if current_pos[k] > limit_range[k][1] and action[k] > 0:
+                        action[k] = 0
+                action[1] *= 1.
                 
             orn_diff = reference_orn.dot(current_orn.T)
             orn_diff_twice = orn_diff.dot(orn_diff).dot(orn_diff)
