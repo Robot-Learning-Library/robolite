@@ -25,16 +25,6 @@ class PandaReach(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         'table_size_0': [0.7, 0.9],
         'table_size_1': [0.7, 0.9],
         'table_size_2': [0.7, 0.9],
-        'table_friction_0': [0.4, 1.6],
-        'table_friction_1': [0.0025, 0.0075],
-        'table_friction_2': [0.00005, 0.00015],
-        'boxobject_size_0': [0.018, 0.022],
-        'boxobject_size_1': [0.018, 0.022],
-        'boxobject_size_2': [0.018, 0.022],
-        'boxobject_friction_0': [0.4, 1.6],
-        'boxobject_friction_1': [0.0025, 0.0075],
-        'boxobject_friction_2': [0.00005, 0.00015],
-        'boxobject_density_1000': [0.6, 1.4],
     }
     
     def reset_props(self,
