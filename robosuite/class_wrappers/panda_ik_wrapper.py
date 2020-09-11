@@ -61,7 +61,8 @@ def panda_ik_wrapper(Env, fix_z=None, max_action=0.1, pose_mat=None, limit_range
                         action[k] = 0
                     if current_pos[k] > limit_range[k][1] and action[k] > 0:
                         action[k] = 0
-                action[1] *= 1.
+                # print('limit range info after', action)
+                action[1] *= -1.
                 
             orn_diff = reference_orn.dot(current_orn.T)
             orn_diff_twice = orn_diff.dot(orn_diff).dot(orn_diff)
