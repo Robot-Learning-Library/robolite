@@ -10,7 +10,7 @@ from robosuite.utils import transform_utils as T
 from robosuite.models.arenas import TableArena
 from robosuite.models.objects import FullyFrictionalBoxObject, CylinderObject
 from robosuite.models.robots import Panda
-from robosuite.models.tasks import TableTopTask, UniformRandomSampler
+from robosuite.models.tasks import TableTopTask, UniformRandomSamplerObjectSpecific
 
 from robosuite.class_wrappers import change_dof
 
@@ -84,12 +84,19 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         if placement_initializer:
             self.placement_initializer = placement_initializer
         else:
-            self.placement_initializer = UniformRandomSampler(
-                x_range=[-0.1, 0.1],
-                y_range=[-0.1, 0.1],
+            # self.placement_initializer = UniformRandomSampler(
+            #     x_range=[-0.1, 0.1],
+            #     y_range=[-0.1, 0.1],
+            #     ensure_object_boundary_in_range=False,
+            #     z_rotation=None,
+            # )
+            self.placement_initializer = UniformRandomSamplerObjectSpecific(
+                x_ranges=[[-0.05, -0.04], [0.04, 0.05]],
+                y_ranges=[[-0.05, -0.04], [0.04, 0.05]],
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,
             )
+            
 
         # for first initialization
         self.table_full_size = (0.8, 0.8, 0.8)
