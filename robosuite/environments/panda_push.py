@@ -17,7 +17,7 @@ from robosuite.class_wrappers import change_dof
 class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
     """
-    This class corresponds to the lifting task for the Panda robot arm.
+    This class corresponds to the pushing task for the Panda robot arm.
     """
     
     parameters_spec = {
@@ -91,8 +91,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             #     z_rotation=None,
             # )
             self.placement_initializer = UniformRandomSamplerObjectSpecific(
-                x_ranges=[[-0.05, -0.04], [0.04, 0.05]],
-                y_ranges=[[-0.05, -0.04], [0.04, 0.05]],
+                x_ranges=[[-0.03, -0.02], [0.09, 0.1]],
+                y_ranges=[[-0.05, -0.04], [-0.05, -0.04]],
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,
             )

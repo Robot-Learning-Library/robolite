@@ -17,7 +17,7 @@ from robosuite.class_wrappers import change_dof
 class PandaReach(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
     """
-    This class corresponds to the lifting task for the Panda robot arm.
+    This class corresponds to the reaching task for the Panda robot arm.
     """
     
     parameters_spec = {
