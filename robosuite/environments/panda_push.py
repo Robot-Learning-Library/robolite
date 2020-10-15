@@ -14,6 +14,26 @@ from robosuite.models.tasks import TableTopTask, UniformRandomSamplerObjectSpeci
 
 from robosuite.class_wrappers import change_dof
 
+# https://stackoverflow.com/a/13849249/11815215
+
+def unit_vector(vector):
+    """ Returns the unit vector of the vector.  """
+    return vector / np.linalg.norm(vector)
+
+def angle_between(v1, v2):
+    """ Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+    """
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
 class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
     """
@@ -254,6 +274,12 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             dist = np.linalg.norm(goal_pos - object_pos)
             goal_distance_reward = -dist
             reward += goal_distance_reward
+
+            # punish when there is a line of object--gripper--goal
+            angle_g_o_g = angle_between(gripper_site_pos - object_pos,
+                                        goal_pos - object_pos)
+            if not success and angle_g_o_g < np.pi / 2.:
+                reward += -0.03 - 0.02 * (np.pi / 2. - angle_g_o_g)
 
             # print('grippersitepos', gripper_site_pos,
             #       'objpos', object_pos,
