@@ -332,10 +332,12 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         object_rot_in_world = self.sim.data.get_body_xmat('cube')
         
         # Get the z-angle with respect to the reference position and do sin-cosine encoding
-        world_rotation_in_reference = np.array([[0., 1., 0., ], [-1., 0., 0., ], [0., 0., 1., ]])
-        object_rotation_in_ref = world_rotation_in_reference.dot(object_rot_in_world)
-        object_euler_in_ref = T.mat2euler(object_rotation_in_ref)
-        z_angle = object_euler_in_ref[2]
+        # world_rotation_in_reference = np.array([[0., 1., 0., ], [-1., 0., 0., ], [0., 0., 1., ]])
+        # object_rotation_in_ref = world_rotation_in_reference.dot(object_rot_in_world)
+        # object_euler_in_ref = T.mat2euler(object_rotation_in_ref)
+        # z_angle = object_euler_in_ref[2]
+        
+        object_quat = convert_quat(self.sim.data.body_xquat[self.cube_body_id], to='xyzw')
         
         # Get the goal position in the world
         goal_site_pos_in_world = np.array(self.sim.data.site_xpos[self.goal_site_id])
@@ -346,11 +348,12 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         di['eef_vel_in_world'] = eef_xvelp_in_world
         di['object_pos_in_world'] = object_pos_in_world
         di['object_vel_in_world'] = object_xvelp_in_world
-        di["z_angle"] = np.array([z_angle])
+        # di["z_angle"] = np.array([z_angle])
+        di['object_quat'] = object_quat
 
     def process_object_obs(self, di):
-        z_angle = di['z_angle']
-        sine_cosine = np.array([np.sin(8*z_angle), np.cos(8*z_angle)]).reshape((2,))
+        # z_angle = di['z_angle']
+        # sine_cosine = np.array([np.sin(8*z_angle), np.cos(8*z_angle)]).reshape((2,))
 
         eef_to_object_in_world = di['object_pos_in_world'] - di['eef_pos_in_world']
         # eef_to_object_in_eef = self.world2eef(eef_to_object_in_world)
@@ -365,7 +368,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
                                      object_to_goal_in_world,
                                      di['eef_vel_in_world'],
                                      di['object_vel_in_world'],
-                                     sine_cosine])
+                                     di['object_quat']])
 
         di['task_state'] = task_state
 

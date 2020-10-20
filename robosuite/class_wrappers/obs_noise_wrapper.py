@@ -2,6 +2,7 @@ import numpy as np
 
 def obs_noise_wrapper(Env, names, range_var, default):
     def add_noise_to(env, obs):
+        # print(obs, names)
         assert(all(name in obs for name in names))
         for name in names:
             var = getattr(env, 'obs_noise_' + name, default)
