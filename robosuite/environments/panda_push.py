@@ -45,24 +45,24 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         'table_size_0': [0.7, 0.9],
         'table_size_1': [0.7, 0.9],
         'table_size_2': [0.7, 0.9],
-        'table_friction_0': [0.4, 1.6],
+        #'table_friction_0': [0.4, 1.6],
         'table_friction_1': [0.0025, 0.0075],
         'table_friction_2': [0.00005, 0.00015],
         'boxobject_size_0': [0.018, 0.022],
         'boxobject_size_1': [0.018, 0.022],
         'boxobject_size_2': [0.018, 0.022],
-        'boxobject_friction_0': [0.4, 1.6],
-        # 'boxobject_friction_1': [0.0025, 0.0075],    # fixed this to zero
+        'boxobject_friction_0': [0.04, 1.6],
+        #'boxobject_friction_1': [0.0025, 0.0075],    # fixed this to zero
         'boxobject_friction_2': [0.00005, 0.00015],
         'boxobject_density_1000': [0.6, 1.4],
     }
     
     def reset_props(self,
                     table_size_0=0.8, table_size_1=0.8, table_size_2=0.8,
-                    table_friction_0=1.0, table_friction_1=0.005, table_friction_2=0.0001,
+                    table_friction_0=0., table_friction_1=0.005, table_friction_2=0.0001,
                     boxobject_size_0=0.020, boxobject_size_1=0.020, boxobject_size_2=0.020,
-                    boxobject_friction_0=1.0, boxobject_friction_1=0.0, boxobject_friction_2=0.0001,
-                    boxobject_density_1000=1.0,
+                    boxobject_friction_0=0.1, boxobject_friction_1=0.0, boxobject_friction_2=0.0001,
+                    boxobject_density_1000=0.1,
                     **kwargs):
         
         self.table_full_size = (table_size_0, table_size_1, table_size_2)
@@ -120,10 +120,10 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
         # for first initialization
         self.table_full_size = (0.8, 0.8, 0.8)
-        self.table_friction = (1.0, 0.005, 0.0001)
+        self.table_friction = (0., 0.005, 0.0001)
         self.boxobject_size = (0.02, 0.02, 0.02)
-        self.boxobject_friction = (1.0, 0.005, 0.0001)
-        self.boxobject_density = 1000.
+        self.boxobject_friction = (0.1, 0.005, 0.0001)
+        self.boxobject_density = 100.
 
         self.object_obs_process = object_obs_process
 

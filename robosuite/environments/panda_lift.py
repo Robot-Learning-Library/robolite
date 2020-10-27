@@ -36,7 +36,7 @@ class PandaLift(PandaEnv):
                     table_friction_0=1.0, table_friction_1=0.005, table_friction_2=0.0001,
                     boxobject_size_0=0.020, boxobject_size_1=0.020, boxobject_size_2=0.020,
                     boxobject_friction_0=1.0, boxobject_friction_1=0.0, boxobject_friction_2=0.0001,
-                    boxobject_density_1000=1.0,
+                    boxobject_density_1000=0.1,
                     **kwargs):
         
         self.table_full_size = (table_size_0, table_size_1, table_size_2)
@@ -90,7 +90,7 @@ class PandaLift(PandaEnv):
         self.table_friction = (1.0, 0.005, 0.0001)
         self.boxobject_size = (0.02, 0.02, 0.02)
         self.boxobject_friction = (1.0, 0.005, 0.0001)
-        self.boxobject_density = 1000.
+        self.boxobject_density = 100.
 
         self.object_obs_process = object_obs_process
 
