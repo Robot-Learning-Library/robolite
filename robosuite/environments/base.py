@@ -148,6 +148,7 @@ class MujocoEnv(metaclass=EnvMeta):
         self._destroy_viewer()
         self.reset_props(**kwargs)
         self._reset_internal()
+
         self.sim.forward()
         return self._get_observation()
 

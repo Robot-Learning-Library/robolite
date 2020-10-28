@@ -121,9 +121,9 @@ class PandaOpenDoor(change_dof(PandaEnv, 7, 8)): # don't need to control a gripp
         # for first initialization
         self.table_full_size = (0.8, 0.8, 0.8)
         self.table_friction = (0., 0.005, 0.0001)
-        self.boxobject_size = (0.02, 0.02, 0.02)
-        self.boxobject_friction = (0.1, 0.005, 0.0001)
-        self.boxobject_density = 100.
+        # self.boxobject_size = (0.02, 0.02, 0.02)
+        # self.boxobject_friction = (0.1, 0.005, 0.0001)
+        # self.boxobject_density = 100.
 
         self.object_obs_process = object_obs_process
 
@@ -207,12 +207,16 @@ class PandaOpenDoor(change_dof(PandaEnv, 7, 8)): # don't need to control a gripp
             self.model.place_objects()
 
         # reset joint positions
-        init_pos = self.mujoco_robot.init_qpos
-        init_pos += np.random.randn(init_pos.shape[0]) * 0.02
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
+        # init_pos = self.mujoco_robot.init_qpos
+        # print(init_pos)
+        # init_pos += np.random.randn(init_pos.shape[0]) * 0.02
+        # self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
 
-        # shut the gripper
-        self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes] = np.array([0., -0.])
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = [0.02085236,  0.20386552,  0.00569112, -2.60645364,  2.8973697, 3.53509316, 2.89737955]  # a good initial gesture
+
+        # open the gripper
+        self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes] = np.array([0.02, -0.02])
+        print(self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes])
 
         # set other reference attributes
         eef_rot_in_world = self.sim.data.get_body_xmat("right_hand").reshape((3, 3))
@@ -239,6 +243,15 @@ class PandaOpenDoor(change_dof(PandaEnv, 7, 8)): # don't need to control a gripp
             previously in robosuite-extra, when dense reward is used, the return value will be a dictionary. but we removed that feature.
         """
         reward = 0.
+        self.door_open_angle = abs(self.sim.data.get_joint_qpos("hinge0"))
+
+        reward += self.door_open_angle
+
+        # Success Reward
+        success = self._check_success()
+        if (success):
+            reward += 0.1
+
 
         # # sparse completion reward
         # if not self.reward_shaping and self._check_success():
@@ -304,6 +317,13 @@ class PandaOpenDoor(change_dof(PandaEnv, 7, 8)): # don't need to control a gripp
         """
         Returns True if task has been completed.
         """
+
+        if self.door_open_angle >= 1.55: # 1.57 ~ PI/2
+            self.done = True
+            return True
+        else:
+            return False
+
         # object_pos = self.sim.data.body_xpos[self.cube_body_id]
         # goal_pos = self.sim.data.site_xpos[self.goal_site_id]
 
@@ -312,7 +332,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 7, 8)): # don't need to control a gripp
 
         # # object centre is within the goal radius
         # return dist < goal_horizontal_radius
-        return False
+        # return False
 
     def step(self, action):
         """ explicitly shut the gripper """

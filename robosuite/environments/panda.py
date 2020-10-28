@@ -208,6 +208,7 @@ class PandaEnv(MujocoEnv):
         super()._reset_internal()
         self.sim.data.qpos[self._ref_joint_pos_indexes] = self.mujoco_robot.init_qpos
 
+
         if self.has_gripper:
             self.sim.data.qpos[
                 self._ref_joint_gripper_actuator_indexes
@@ -221,6 +222,7 @@ class PandaEnv(MujocoEnv):
 
         # indices for joints in qpos, qvel
         self.robot_joints = list(self.mujoco_robot.joints)
+        # print( self.sim.model.get_joint_qpos_addr('joint0'))
         self._ref_joint_pos_indexes = [
             self.sim.model.get_joint_qpos_addr(x) for x in self.robot_joints
         ]
@@ -261,11 +263,20 @@ class PandaEnv(MujocoEnv):
         ]
 
         if self.has_gripper:
-            self._ref_joint_gripper_actuator_indexes = [
-                self.sim.model.actuator_name2id(actuator)
-                for actuator in self.sim.model.actuator_names
-                if actuator.startswith("gripper")
-            ]
+            # self._ref_joint_gripper_actuator_indexes = [
+            #     self.sim.model.actuator_name2id(actuator)
+            #     for actuator in self.sim.model.actuator_names
+            #     if actuator.startswith("gripper")
+            # ]
+
+            ''' Fix the bug for above. If there are joints before the robot and gripper, for example 3 joints
+            before 7 joints of the robot and 2 joints of the gripper, then only the modified one below works correct.
+            The reason is that the joints on the robot and gripper are also called actuators, but those 3 joints may 
+            not be actuators, therefore the counting in actuators will not consider the 3, and causing an index mismatch.
+            '''  
+            self._ref_joint_gripper_actuator_indexes =[self.sim.model.joint_name2id(joint)
+                for joint in self.sim.model.joint_names
+                if joint.startswith("finger")]
 
         # IDs of sites for gripper visualization
         self.eef_site_id = self.sim.model.site_name2id("grip_site")
