@@ -208,14 +208,12 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         init_pos = self.mujoco_robot.init_qpos
         init_pos += np.random.randn(init_pos.shape[0]) * 0.02
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
-        print(self._ref_joint_pos_indexes, self._ref_joint_gripper_actuator_indexes)
         # shut the gripper
         self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes] = np.array([0., -0.])
 
         # set other reference attributes
         eef_rot_in_world = self.sim.data.get_body_xmat("right_hand").reshape((3, 3))
         self.world_rot_in_eef = copy.deepcopy(eef_rot_in_world.T)  # TODO inspect on this: should we set a golden reference other than a initial position?
-        print(eef_rot_in_world)
 
     # reward function from sawyer_push
     def reward(self, action=None):

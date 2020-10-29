@@ -34,8 +34,8 @@ def angle_between(v1, v2):
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
-class PandaOpenDoor(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
-
+class PandaOpenDoor(PandaEnv): # don't need to control a gripper
+# class PandaOpenDoor(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
     """
     This class corresponds to the pushing task for the Panda robot arm.
     """
@@ -215,8 +215,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 7, 8)): # don't need to control a gripp
         self.sim.data.qpos[self._ref_joint_pos_indexes] = [0.02085236,  0.20386552,  0.00569112, -2.60645364,  2.8973697, 3.53509316, 2.89737955]  # a good initial gesture
 
         # open the gripper
-        self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes] = np.array([0.02, -0.02])
-        print(self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes])
+        # self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes] = np.array([0.2, -0.2])
+        self.sim.data.ctrl[-2:] = np.array([0.04, -0.04])  # panda gripper finger joint range is -0.04~0.04
 
         # set other reference attributes
         eef_rot_in_world = self.sim.data.get_body_xmat("right_hand").reshape((3, 3))
@@ -335,9 +335,9 @@ class PandaOpenDoor(change_dof(PandaEnv, 7, 8)): # don't need to control a gripp
         # return False
 
     def step(self, action):
-        """ explicitly shut the gripper """
-        joined_action = np.append(action, [1.])
-        return super().step(joined_action)
+        # """ explicitly shut the gripper """
+        # joined_action = np.append(action, [1.])
+        return super().step(action)
 
     def world2eef(self, world):
         return self.world_rot_in_eef.dot(world)

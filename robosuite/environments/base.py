@@ -200,15 +200,16 @@ class MujocoEnv(metaclass=EnvMeta):
         self.timestep = 0
         self.done = False
 
+
     def _get_observation(self):
         """Returns an OrderedDict containing observations [(name_string, np.array), ...]."""
         return OrderedDict()
 
     def step(self, action):
+
         """Takes a step in simulation with control command @action."""
         if self.done:
             raise ValueError("executing action in terminated episode")
-
         self.timestep += 1
         self._pre_action(action)
         end_time = self.cur_time + self.control_timestep

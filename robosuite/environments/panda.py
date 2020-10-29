@@ -320,8 +320,17 @@ class PandaEnv(MujocoEnv):
         ctrl_range = self.sim.model.actuator_ctrlrange
         bias = 0.5 * (ctrl_range[:, 1] + ctrl_range[:, 0])
         weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
+        bias[-2:] = 2*[0.]  # modified: the bias for gripper shoule be 0.
         applied_action = bias + weight * action
-        self.sim.data.ctrl[:] = applied_action
+
+        # Two gripper control modes:
+        # 1. Control the gripper with action directly being position
+        # self.sim.data.ctrl[:] = applied_action
+
+        # 2. Control the gripper with action being position change of fingers
+        self.sim.data.ctrl[:-2] = applied_action[:-2]
+        self.sim.data.ctrl[-2:] += applied_action[-2:]
+
 
         # gravity compensation
         self.sim.data.qfrc_applied[
