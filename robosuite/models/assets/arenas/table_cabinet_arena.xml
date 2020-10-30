@@ -62,7 +62,7 @@
 		<camera mode="fixed" name="agentview" pos="0.5 0 1.35" quat="0.653 0.271 0.271 0.653"/>
 
   
-    <body childclass="door" name="frame_link" pos="0. -0.4 0.8" quat="0.707 0 0 0.707">
+    <body childclass="door" name="frame_link" pos="0. -0.4 0.9" quat="0.707 0 0 0.707">
         <inertial mass="100" pos="0 0 0" diaginertia="0.0001 0.0001 0.0001"/>
         <geom quat="0.707388 0.706825 0 0" type="mesh" contype="0" conaffinity="1" group="1"   mesh="cabinet_body"/>
         <body childclass="door" name="door_link" pos="0.774 -0.0055 0.095">
