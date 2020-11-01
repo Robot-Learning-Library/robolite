@@ -257,7 +257,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             # reaching reward
             gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
             dist = np.linalg.norm(gripper_site_pos - object_pos)
-            reaching_reward = -0.4 * dist
+            reaching_reward = -0.15 * dist
             reward += reaching_reward
 
             # print(gripper_site_pos, object_pos, reaching_reward)
