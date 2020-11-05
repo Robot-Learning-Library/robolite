@@ -189,6 +189,12 @@ class PandaLift(PandaEnv):
         # use a shaping reward
         if self.reward_shaping:
 
+            # shaping completion
+            cube_height = self.sim.data.body_xpos[self.cube_body_id][2]
+            table_height = self.table_full_size[2]
+            if cube_height < table_height + 0.08:
+                reward += -3 * (table_height + 0.08 - cube_height)
+            
             # reaching reward
             cube_pos = self.sim.data.body_xpos[self.cube_body_id]
             gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
@@ -285,7 +291,7 @@ class PandaLift(PandaEnv):
         table_height = self.table_full_size[2]
 
         # cube is higher than the table top above a margin
-        return cube_height > table_height + 0.04
+        return cube_height > table_height + 0.08
 
     def _gripper_visualization(self):
         """
