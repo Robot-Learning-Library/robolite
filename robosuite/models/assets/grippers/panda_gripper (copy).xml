@@ -40,6 +40,35 @@
                 <joint name="finger_joint1" pos="0 0 0" axis="0 1 0" type="slide" limited="true" range="0.0 0.04" damping="100"/>
                 <geom quat="0.707107 0.707107 0 0" type="mesh" contype="0" conaffinity="0" group="1" mesh="finger_vis" name="finger1_visual"/>
 
+                <!-- left finger tactile -->
+                <body name="touch_l1_body" pos="0.002 -0.0035 0.0536"  >
+                <site name="touch_l1" type="box" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <!-- <geom type="box" pos="0.001 -0.0035 0.0536" size=".001 .005 .005" rgba="0 .8 .6 0.5" contype="0" conaffinity="0"/> -->
+                <geom type="mesh" mesh="pad"  group="1" name="pad"/>
+                </body>
+
+                <site name="touch_l2" type="box" pos="0.006 -0.0035 0.0536" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l3" type="box" pos="0.010 -0.0035 0.0536" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l4" type="box" pos="-0.002 -0.0035 0.0536" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l5" type="box" pos="-0.006 -0.0035 0.0536" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l6" type="box" pos="-0.010 -0.0035 0.0536" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l7" type="box" pos="0.002 -0.0035 0.0436" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l8" type="box" pos="0.006 -0.0035 0.0436" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l9" type="box" pos="0.010 -0.0035 0.0436" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l10" type="box" pos="-0.002 -0.0035 0.0436" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l11" type="box" pos="-0.006 -0.0035 0.0436" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l12" type="box" pos="-0.010 -0.0035 0.0436" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l13" type="box" pos="0.002 -0.0035 0.0336" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l14" type="box" pos="0.006 -0.0035 0.0336" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l15" type="box" pos="0.010 -0.0035 0.0336" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l16" type="box" pos="-0.002 -0.0035 0.0336" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <site name="touch_l17" type="box" pos="-0.006 -0.0035 0.0336" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <!-- <site name="touch_l18" type="box" pos="-0.010 -0.0035 0.0336" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/> -->
+                <body name="touch_l18_body" pos="-0.010 -0.0035 0.0336"  >
+                <site name="touch_l18" type="box" size="0.001 0.001 0.001" rgba="0 0.5 0.5 0.33"/>
+                <!-- <geom type="box" pos="0.001 -0.0035 0.0536" size=".001 .005 .005" rgba="0 .8 .6 0.5" contype="0" conaffinity="0"/> -->
+                <geom type="mesh" mesh="pad"  group="1" name="pad18"/>
+                </body>
 
                 <!-- <geom type="mesh" mesh="finger"  solimp="0.9 0.95 0.005" solmix="10000" solref="0.05 1"/> -->
                 <!-- <geom type="mesh" mesh="fingerc" solimp="0.9 0.95 0.005" solmix="10000" solref="0.05 1"/> -->
@@ -70,6 +99,25 @@
     <sensor>
         <force name="force_ee" site="ft_frame"/>
         <torque name="torque_ee" site="ft_frame"/>
+
+        <force name="touch_l1" site="touch_l1"></force>
+        <force name="touch_l2" site="touch_l2"></force>
+        <force name="touch_l3" site="touch_l3"></force>
+        <force name="touch_l4" site="touch_l4"></force>
+        <force name="touch_l5" site="touch_l5"></force>
+        <force name="touch_l6" site="touch_l6"></force>
+        <force name="touch_l7" site="touch_l7"></force>
+        <force name="touch_l8" site="touch_l8"></force>
+        <force name="touch_l9" site="touch_l9"></force>
+        <force name="touch_l10" site="touch_l10"></force>
+        <force name="touch_l11" site="touch_l11"></force>
+        <force name="touch_l12" site="touch_l12"></force>
+        <force name="touch_l13" site="touch_l13"></force>
+        <force name="touch_l14" site="touch_l14"></force>
+        <force name="touch_l15" site="touch_l15"></force>
+        <force name="touch_l16" site="touch_l16"></force>
+        <force name="touch_l17" site="touch_l17"></force>
+        <force name="touch_l18" site="touch_l18"></force>
 
     </sensor>
 </mujoco>

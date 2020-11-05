@@ -46,12 +46,17 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     
     parameters_spec = {
         **PandaEnv.parameters_spec,
-        'table_size_0': [0.7, 0.9],
-        'table_size_1': [0.7, 0.9],
-        'table_size_2': [0.7, 0.9],
+        'hinge_stiffness': [0.1, 0.3],
+        'hinge_damping': [0.1, 0.3],
+        'hinge_frictionloss': [0., 1.,],
+        'door_mass': [50, 150],
+        'knob_mass': [2, 10],
+        # 'table_size_0': [0.7, 0.9],
+        # 'table_size_1': [0.7, 0.9],
+        # 'table_size_2': [0.7, 0.9],
         #'table_friction_0': [0.4, 1.6],
-        'table_friction_1': [0.0025, 0.0075],
-        'table_friction_2': [0.00005, 0.00015],
+        # 'table_friction_1': [0.0025, 0.0075],
+        # 'table_friction_2': [0.00005, 0.00015],
         # 'boxobject_size_0': [0.018, 0.022],
         # 'boxobject_size_1': [0.018, 0.022],
         # 'boxobject_size_2': [0.018, 0.022],
@@ -62,15 +67,31 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     }
     
     def reset_props(self,
+                    hinge_stiffness = 0.1,
+                    hinge_damping = 0.1,
+                    hinge_frictionloss = 0.1,
+                    door_mass = 100., 
+                    knob_mass = 5.,
                     table_size_0=0.8, table_size_1=0.8, table_size_2=0.9,
-                    table_friction_0=0., table_friction_1=0.005, table_friction_2=0.0001,
+                    # table_friction_0=0., table_friction_1=0.005, table_friction_2=0.0001,
                     # boxobject_size_0=0.020, boxobject_size_1=0.020, boxobject_size_2=0.020,
                     # boxobject_friction_0=0.1, boxobject_friction_1=0.0, boxobject_friction_2=0.0001,
                     # boxobject_density_1000=0.1,
                     **kwargs):
         
+        self.hinge_stiffness = hinge_stiffness
+        self.mujoco_arena.door_hinge.set('stiffness', str(self.hinge_stiffness))
+        self.hinge_damping =  hinge_damping
+        self.mujoco_arena.door_hinge.set('damping', str(self.hinge_damping))
+        self.hinge_frictionloss = hinge_frictionloss
+        self.mujoco_arena.door_hinge.set('frictionloss', str(self.hinge_frictionloss))
+        self.door_mass = door_mass
+        self.mujoco_arena.door_mass.set('mass', str(self.door_mass))
+        self.knob_mass = knob_mass
+        self.mujoco_arena.knob_mass.set('mass', str(self.knob_mass))
+
         self.table_full_size = (table_size_0, table_size_1, table_size_2)
-        self.table_friction = (table_friction_0, table_friction_1, table_friction_2)
+        # self.table_friction = (table_friction_0, table_friction_1, table_friction_2)
         # self.boxobject_size = (boxobject_size_0, boxobject_size_1, boxobject_size_2)
         # self.boxobject_friction = (boxobject_friction_0, boxobject_friction_1, boxobject_friction_2)
         # self.boxobject_density = boxobject_density_1000 * 1000.
@@ -150,22 +171,6 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # The panda robot has a pedestal, we want to align it with the table
         self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
         
-        # initialize objects of interest
-
-        # cube = FullyFrictionalBoxObject(
-        #     size=self.boxobject_size,
-        #     friction=self.boxobject_friction,
-        #     density=self.boxobject_density,
-        #     rgba=[1, 0, 0, 1],
-        # )
-        # self.mujoco_cube = cube
-        # goal = CylinderObject(
-        #     size=[0.03, 0.001],
-        #     rgba=[0, 1, 0, 1],
-        # )
-        # self.mujoco_goal = goal
-        # self.mujoco_objects = OrderedDict([("cube", cube), ("goal", goal)])
-        
         self.mujoco_objects = None
 
         # task includes arena, robot, and objects of interest
@@ -193,11 +198,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         self.r_finger_geom_ids = [
             self.sim.model.geom_name2id(x) for x in self.gripper.right_finger_geoms
         ]
-        # self.cube_geom_id = self.sim.model.geom_name2id("cube")
-
-        # gripper ids
-        # self.goal_body_id = self.sim.model.body_name2id('goal')
-        # self.goal_site_id = self.sim.model.site_name2id('goal')
+        self.knob_geom_id = self.sim.model.geom_name2id("cabinet_knob")
 
     def _reset_internal(self):
         """
@@ -211,35 +212,23 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             self.model.place_objects()
 
         # reset joint positions
-        # init_pos = self.mujoco_robot.init_qpos
-        # print(init_pos)
-        # init_pos += np.random.randn(init_pos.shape[0]) * 0.02
-        # self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
-
         # self.sim.data.qpos[self._ref_joint_pos_indexes] = [0.02085236,  0.20386552,  0.00569112, -2.60645364,  2.8973697, 3.53509316, 2.89737955]  # a initial gesture: facing downwards
-        # self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10234113, -1.32314358,  0.18383693, -2.88485115,  1.64673455,  3.22235274, 2.3644487 ] # a good initial gesture： facing horizontally
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10259647, -0.77839656,  0.27246156, -2.35741103,  1.647504,  3.43102572, -0.85707793]
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10259647, -0.77839656,  0.27246156, -2.35741103,  1.647504,  3.43102572, -0.85707793]   # a good initial gesture： facing horizontally
+        
         # open the gripper
-        # self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes] = np.array([0.2, -0.2])
         self.sim.data.ctrl[-2:] = np.array([0.04, -0.04])  # panda gripper finger joint range is -0.04~0.04
 
         # set other reference attributes
         eef_rot_in_world = self.sim.data.get_body_xmat("right_hand").reshape((3, 3))
         self.world_rot_in_eef = copy.deepcopy(eef_rot_in_world.T)  # TODO inspect on this: should we set a golden reference other than a initial position?
 
+    def get_gripper_state(self,):
+        return abs(self.sim.data.qpos[-1])  # last joint is the gripper
+
     # reward function from sawyer_push
     def reward(self, action=None):
         """
         Reward function for the task.
-
-        The dense reward has three components.
-
-            Reaching: in [-inf, 0], to encourage the arm to reach the object
-            Goal Distance: in [-inf, 0] the distance between the pushed object and the goal
-            Safety reward in [-inf, 0], -1 for every joint that is at its limit.
-
-        The sparse reward only receives a {0,1} upon reaching the goal
-
         Args:
             action (np array): The action taken in that timestep
 
@@ -247,31 +236,49 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             reward (float): the reward
             previously in robosuite-extra, when dense reward is used, the return value will be a dictionary. but we removed that feature.
         """
+        self.get_gripper_state()
         reward = 0.
         self.door_open_angle = abs(self.sim.data.get_joint_qpos("hinge0"))
 
-        reward_door_open = self.door_open_angle
+        reward_door_open = 0.
+        if self.get_gripper_state() > 0.01:  # if the gripper is nearly closed, ignore the reward for door opening
+            reward_door_open += self.door_open_angle
 
         reward_dist = 0.
         reward_ori = 0.
         if self.door_open_angle < 0.03:
             # A distance reward: minimize the distance between the gripper and door konb when the door is almost closed 
-            reward_dist = -np.linalg.norm(self.get_finger2knob_dist_vec())
+            reward_dist = -np.linalg.norm(self.get_hand2knob_dist_vec())
 
             # An orientation reward: make the orientation of gripper horizontal (better for knob grasping) when the door is almost closed 
             fingerEulerDesired =  [np.pi, 0, np.pi/2]  # horizontal gesture for gripper
             finger_ori = self.get_finger_ori()
-
             ori_diff = sin_cos_encoding(fingerEulerDesired) - sin_cos_encoding(finger_ori)  # use sin_cos_encoding to avoid value jump in 2PI measure
             reward_ori = -np.linalg.norm(ori_diff) * 0.04
 
-            # worldHknob = self.sim.data.get_body_xquat("knob_link")
-            # knobHee_desired = euler2quat(quat2euler([0.5, 0.5, 0.5, -0.5]))
-            # worldHee_desired = quat_mul(worldHknob, knobHee_desired)
 
-            # print(quat2euler(knobHee_desired), self.get_finger_ori())
+        # grasping reward
+        touch_left_finger = False
+        touch_right_finger = False
+        reward_grasp = 0.
+        for i in range(self.sim.data.ncon):
+            c = self.sim.data.contact[i]
+            if c.geom1 in self.l_finger_geom_ids and c.geom2 == self.knob_geom_id:
+                touch_left_finger = True
+            if c.geom1 == self.knob_geom_id and c.geom2 in self.l_finger_geom_ids:
+                touch_left_finger = True
+            if c.geom1 in self.r_finger_geom_ids and c.geom2 == self.knob_geom_id:
+                touch_right_finger = True
+            if c.geom1 == self.knob_geom_id and c.geom2 in self.r_finger_geom_ids:
+                touch_right_finger = True
+        if touch_left_finger and touch_right_finger:
+            reward_grasp += 1.
+        reward = reward_door_open + reward_dist + reward_ori + reward_grasp  # A summary of reward values
 
-        reward = reward_door_open + reward_dist + reward_ori  # A summary of reward values
+        # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
+        # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
+
+        # print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues
 
 
         # Success Reward
@@ -352,78 +359,12 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         else:
             return False
 
-        # object_pos = self.sim.data.body_xpos[self.cube_body_id]
-        # goal_pos = self.sim.data.site_xpos[self.goal_site_id]
-
-        # dist = np.linalg.norm(goal_pos - object_pos)
-        # goal_horizontal_radius = self.model.mujoco_objects['goal'].get_horizontal_radius()
-
-        # # object centre is within the goal radius
-        # return dist < goal_horizontal_radius
-        # return False
 
     def step(self, action):
-        # """ explicitly shut the gripper """
-        # joined_action = np.append(action, [1.])
         return super().step(action)
 
     def world2eef(self, world):
         return self.world_rot_in_eef.dot(world)
-
-    # def put_raw_object_obs(self, di):
-        # Extract position and velocity of the eef
-        # eef_pos_in_world = self.sim.data.get_body_xpos("right_hand")
-        # eef_xvelp_in_world = self.sim.data.get_body_xvelp("right_hand")
-
-        # print('eef_pos_in_world', eef_pos_in_world)
-
-        # Get the position, velocity, rotation  and rotational velocity of the object in the world frame
-        # object_pos_in_world = self.sim.data.body_xpos[self.cube_body_id]
-        # object_xvelp_in_world = self.sim.data.get_body_xvelp('cube')
-        # object_rot_in_world = self.sim.data.get_body_xmat('cube')
-        
-        # Get the z-angle with respect to the reference position and do sin-cosine encoding
-        # world_rotation_in_reference = np.array([[0., 1., 0., ], [-1., 0., 0., ], [0., 0., 1., ]])
-        # object_rotation_in_ref = world_rotation_in_reference.dot(object_rot_in_world)
-        # object_euler_in_ref = T.mat2euler(object_rotation_in_ref)
-        # z_angle = object_euler_in_ref[2]
-        
-        # object_quat = convert_quat(self.sim.data.body_xquat[self.cube_body_id], to='xyzw')
-        
-        # Get the goal position in the world
-        # goal_site_pos_in_world = np.array(self.sim.data.site_xpos[self.goal_site_id])
-
-        # Record observations into a dictionary
-        # di['goal_pos_in_world'] = goal_site_pos_in_world
-        # di['eef_pos_in_world'] = eef_pos_in_world
-        # di['eef_vel_in_world'] = eef_xvelp_in_world
-        # di['object_pos_in_world'] = object_pos_in_world
-        # di['object_vel_in_world'] = object_xvelp_in_world
-        # di["z_angle"] = np.array([z_angle])
-        # di['object_quat'] = object_quat
-
-    # def process_object_obs(self, di):
-    #     # z_angle = di['z_angle']
-    #     # sine_cosine = np.array([np.sin(8*z_angle), np.cos(8*z_angle)]).reshape((2,))
-
-    #     eef_to_object_in_world = di['object_pos_in_world'] - di['eef_pos_in_world']
-    #     # eef_to_object_in_eef = self.world2eef(eef_to_object_in_world)
-
-    #     object_to_goal_in_world = di['goal_pos_in_world'] - di['object_pos_in_world']
-    #     # object_to_goal_in_eef = self.world2eef(object_to_goal_in_world)
-
-    #     # object_xvelp_in_eef = self.world2eef(di['object_vel_in_world'])
-    #     # eef_xvelp_in_eef = self.world2eef(di['eef_vel_in_world'])
-
-        # task_state = np.concatenate([
-                                    #  eef_to_object_in_world,
-                                    #  object_to_goal_in_world,
-                                    #  di['eef_pos_in_world'],
-                                    #  di['eef_vel_in_world'],
-                                    #  di['object_vel_in_world'],
-                                    #  di['object_quat']
-                                    # ])
-        # di['task_state'] = task_state
 
     def _get_observation(self):
         """
@@ -462,7 +403,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             eef_xvelp_in_world = self.sim.data.get_body_xvelp("right_hand")
             di['eef_pos_in_world'] = eef_pos_in_world  # dim=3
             di['eef_vel_in_world'] = eef_xvelp_in_world  # dim=3
-            di['finger_knob_dist'] = self.get_finger2knob_dist_vec()  # dim=3
+            di['finger_knob_dist'] = self.get_hand2knob_dist_vec()  # dim=3
             di['door_hinge_angle'] = [self.sim.data.get_joint_qpos("hinge0")]  # dim=1
 
             task_state = np.concatenate([
@@ -530,5 +471,5 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         knob_pos = self.sim.data.get_geom_xpos("center_cabinet_knob")
         return knob_pos
 
-    def get_finger2knob_dist_vec(self):
+    def get_hand2knob_dist_vec(self):
         return self.get_hand_pos() - self.get_knob_pos()

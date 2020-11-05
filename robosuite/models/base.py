@@ -28,6 +28,7 @@ class MujocoXML(object):
         self.name = self.root.get("model")
         self.worldbody = self.create_default_element("worldbody")
         self.actuator = self.create_default_element("actuator")
+        self.sensor = self.create_default_element("sensor")
         self.asset = self.create_default_element("asset")
         self.equality = self.create_default_element("equality")
         self.contact = self.create_default_element("contact")
@@ -75,6 +76,8 @@ class MujocoXML(object):
         self.merge_asset(other)
         for one_actuator in other.actuator:
             self.actuator.append(one_actuator)
+        for one_sensor in other.sensor: # added sensor merge
+            self.sensor.append(one_sensor)
         for one_equality in other.equality:
             self.equality.append(one_equality)
         for one_contact in other.contact:
