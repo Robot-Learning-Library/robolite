@@ -72,7 +72,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
                     hinge_frictionloss = 0.1,
                     door_mass = 100., 
                     knob_mass = 5.,
-                    table_size_0=0.8, table_size_1=0.8, table_size_2=0.9,
+                    table_size_0=0.8, table_size_1=1.8, table_size_2=0.9,
                     # table_friction_0=0., table_friction_1=0.005, table_friction_2=0.0001,
                     # boxobject_size_0=0.020, boxobject_size_1=0.020, boxobject_size_2=0.020,
                     # boxobject_friction_0=0.1, boxobject_friction_1=0.0, boxobject_friction_2=0.0001,
@@ -278,7 +278,10 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
 
-        # print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues
+        # print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues: force tactile
+
+        print(self.sim.data.sensordata[6:]) # Gives array of all sensorvalues: touch tactile
+
 
 
         # Success Reward

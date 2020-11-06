@@ -47,9 +47,9 @@
 		<geom material="Floor" name="floor" pos="0 0 -0.05" size="4.0 4.0 0.05" type="plane"/>
 
 		<body name="table" pos="0 0 0.4">
-      <geom pos="0.1 0 0" size="0.4 0.4 0.4" type="box" name="table_collision" friction="1 0.005 0.0001"/>
-      <geom pos="0.1 0 0" size="0.4 0.4 0.4" type="box" conaffinity="0" contype="0" group="1" name="table_visual"/>
-      <site pos="0.1 0 0.4" name="table_top" size="0.001 0.001 0.001" rgba="0 0 0 0"/>
+			<geom pos="0.1 0 0" size="0.4 0.4 0.4" type="box" name="table_collision" friction="1 0.005 0.0001"/>
+			<geom pos="0.3 0 0" size="0.4 0.4 0.4" type="box" conaffinity="0" contype="0" group="1" name="table_visual"/>
+			<site pos="0.1 0 0.4" name="table_top" size="0.001 0.001 0.001" rgba="0 0 0 0"/>
 		</body>
 
 		<light diffuse=".8 .8 .8" dir="0 -.15 -1" directional="false" pos="1 1 4.0" specular="0.3 0.3 0.3" castshadow="false"/>
@@ -62,7 +62,7 @@
 		<camera mode="fixed" name="agentview" pos="0.5 0 1.35" quat="0.653 0.271 0.271 0.653"/>
 
   
-    <body childclass="door" name="frame_link" pos="0. -0.4 0.9" quat="0.707 0 0 0.707">
+    <body childclass="door" name="frame_link" pos="0. -0.6 0.9" quat="0.707 0 0 0.707">
         <inertial mass="100" pos="0 0 0" diaginertia="0.0001 0.0001 0.0001"/>
         <geom quat="0.707388 0.706825 0 0" type="mesh" contype="0" conaffinity="1" group="1"   mesh="cabinet_body"/>
         <body childclass="door" name="door_link" pos="0.774 -0.0055 0.095">
