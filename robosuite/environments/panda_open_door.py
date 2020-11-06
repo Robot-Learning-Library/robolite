@@ -278,9 +278,9 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
 
-        # print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues: force tactile
+        print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues: force tactile
 
-        print(self.sim.data.sensordata[6:]) # Gives array of all sensorvalues: touch tactile
+        # print(self.sim.data.sensordata[6:]) # Gives array of all sensorvalues: touch tactile
 
 
 
