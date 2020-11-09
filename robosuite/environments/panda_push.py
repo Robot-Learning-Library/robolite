@@ -51,10 +51,10 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         'boxobject_size_0': [0.018, 0.022],
         'boxobject_size_1': [0.018, 0.022],
         'boxobject_size_2': [0.018, 0.022],
-        'boxobject_friction_0': [0.04, 1.6],
+        'boxobject_friction_0': [0.05, 0.15],
         #'boxobject_friction_1': [0.0025, 0.0075],    # fixed this to zero
         'boxobject_friction_2': [0.00005, 0.00015],
-        'boxobject_density_1000': [0.6, 1.4],
+        'boxobject_density_1000': [0.06, 0.14],
     }
     
     def reset_props(self,
