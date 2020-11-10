@@ -151,6 +151,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # self.boxobject_density = 100.
 
         self.object_obs_process = object_obs_process
+        self.grasp_state = False
 
         super().__init__(gripper_visualization=True, **kwargs)
 
@@ -205,6 +206,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         Resets simulation internal configurations.
         """
         super()._reset_internal()
+        self.grasp_state = False
         self.sim.forward()
 
         # reset positions of objects
@@ -241,7 +243,12 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         self.door_open_angle = abs(self.sim.data.get_joint_qpos("hinge0"))
 
         reward_door_open = 0.
-        if self.get_gripper_state() > 0.01:  # if the gripper is nearly closed, ignore the reward for door opening
+
+        # If the gripper is nearly closed, ignore the reward for door opening; fully closed is about 0.001
+        # However, the self.get_gripper_state() can be inaccurate sometimes, so deprecate this approach.
+        # if self.get_gripper_state() > 0.002:  
+        #     reward_door_open += self.door_open_angle
+        if self.grasp_state:  # only count for the door opening reward when the knob is grasped by the robot
             reward_door_open += self.door_open_angle
 
         reward_dist = 0.
@@ -255,7 +262,6 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             finger_ori = self.get_finger_ori()
             ori_diff = sin_cos_encoding(fingerEulerDesired) - sin_cos_encoding(finger_ori)  # use sin_cos_encoding to avoid value jump in 2PI measure
             reward_ori = -np.linalg.norm(ori_diff) * 0.04
-
 
         # grasping reward
         touch_left_finger = False
@@ -271,14 +277,18 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
                 touch_right_finger = True
             if c.geom1 == self.knob_geom_id and c.geom2 in self.r_finger_geom_ids:
                 touch_right_finger = True
-        if touch_left_finger and touch_right_finger:
-            reward_grasp += 1.
-        reward = reward_door_open + reward_dist + reward_ori + reward_grasp  # A summary of reward values
+        if touch_left_finger and touch_right_finger: # the grasping detection here (when True) not only requires the knob to be grasped by the gripper, but also in a good gesture
+            self.grasp_state = True
+            reward_grasp += 0.1
+        else:
+            self.grasp_state = False
+
+        reward = reward_door_open + 0.1*(reward_dist + reward_ori) + reward_grasp  # A summary of reward values
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
 
-        print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues: force tactile
+        # print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues: force tactile
 
         # print(self.sim.data.sensordata[6:]) # Gives array of all sensorvalues: touch tactile
 
@@ -287,7 +297,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # Success Reward
         success = self._check_success()
         if (success):
-            reward += 0.1
+            reward += 10.
             self.done = True
 
 
