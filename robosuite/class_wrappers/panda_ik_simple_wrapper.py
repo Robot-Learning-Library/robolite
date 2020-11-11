@@ -153,6 +153,12 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=0.5, p
             # ee_curr = self.get_geom_posquat("hand_visual")  # does not give a fully correct control: correct for position and x- and y-rotation, wrong for z-rotation
             ee_curr = np.concatenate([self._right_hand_pos, mat2quat(self._right_hand_orn)])  # gives correct control for both opsition and orientation
 
+            if fix_z is not None:
+                action = np.concatenate([action, [0.]])  # add zero action to z-axis to construct a complete position action vector since input is of 2 dims
+
+            if rotation is False:
+                action = np.concatenate([action, [0.,0.,0.]])  # add zero rotations to three axis to construct a complete action vector 
+
             ee_tget = action + np.concatenate([ee_curr[:-4], quat2euler(ee_curr[-4:])])    # change last 3 dims for orientation from quaternion to euler
             ee_tget = np.concatenate([ee_tget[:-3], euler2quat(ee_tget[-3:])])  # change last 3 dims for orientation from euler to quaternion
 
