@@ -282,7 +282,6 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             reward_grasp += 0.1
         else:
             self.grasp_state = False
-
         reward = reward_door_open + 0.1*(reward_dist + reward_ori) + reward_grasp  # A summary of reward values
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
@@ -297,9 +296,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # Success Reward
         success = self._check_success()
         if (success):
-            reward += 10.
+            reward += 0.1
             self.done = True
-
 
 
         # worldHknob = self.sim.data.get_body_xquat("knob_link")

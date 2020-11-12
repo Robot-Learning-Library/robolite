@@ -121,6 +121,13 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=0.5, p
         def reset(self, **kwargs):
             ret = super().reset(**kwargs)
             self._set_reference_right_hand_orn()
+
+            # added, move to initial position
+            # print(Env.dof)
+            # move_to_init_action = np.zeros(wrapping_dof)
+            # move_to_init_action[2]  = -1
+            # self.step(move_to_init_action)
+
             return ret
 
         def reset_props(self, pandaik_z_proportional_gain=2.0, **kwargs):
@@ -144,8 +151,22 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=0.5, p
             return np.hstack((pos, quat))
 
         def step(self, action_all):
+            """
+            @brief
+                Take the input of all action, return a processed action.
+
+                The first ik_dof dims of action are for EE control, which will be transformed into IK actions on 7 joints: 
+                If fixed_z, the first two dimensions are for x- and y-position;
+                if not, the first three dimensions are for x-, y- and z-position.
+                If rotation is True, the rest three dimensions (Euler) in ik_dof are for orientation control.
+
+                The other dimensions of input action are not for EE control, but for like gripper control, 
+                which remains the same (no need for IK transformation).
+
+            """
+
             assert(action_all.shape == (self.dof, ))
-            action = action_all[:ik_dof]  # the first 3 dims are position, and the last 3 dims are orientation (euler)
+            action = action_all[:ik_dof]  # the first 2 or 3 dims are position, and the last 3 dims are orientation (euler)
             action_other = action_all[ik_dof:]  # gripper control, etc
 
             action = np.clip(action, np.ones(ik_dof) * -1, np.ones(ik_dof) * 1) * max_action   # action range: [-max_action, max_action]
@@ -154,7 +175,8 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=0.5, p
             ee_curr = np.concatenate([self._right_hand_pos, mat2quat(self._right_hand_orn)])  # gives correct control for both opsition and orientation
 
             if fix_z is not None:
-                action = np.concatenate([action, [0.]])  # add zero action to z-axis to construct a complete position action vector since input is of 2 dims
+                z_error = fix_z - ee_curr[2]
+                action = np.concatenate([action, [5.*z_error]])  # add action to z-axis to construct a complete position action vector since input is of 2 dims: set a large proportional gain (5.) to quickly move to fix_z
 
             if rotation is False:
                 action = np.concatenate([action, [0.,0.,0.]])  # add zero rotations to three axis to construct a complete action vector 
