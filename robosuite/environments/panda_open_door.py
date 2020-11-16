@@ -292,12 +292,11 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # print(self.sim.data.sensordata[6:]) # Gives array of all sensorvalues: touch tactile
 
 
-
         # Success Reward
-        success = self._check_success()
-        if (success):
-            reward += 0.1
-            self.done = True
+        self.done = self._check_success()
+        # if (success):
+        #     reward += 0.1
+            # self.done = True
 
 
         # worldHknob = self.sim.data.get_body_xquat("knob_link")

@@ -48,9 +48,9 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         #'table_friction_0': [0.4, 1.6],
         'table_friction_1': [0.0025, 0.0075],
         'table_friction_2': [0.00005, 0.00015],
-        'boxobject_size_0': [0.018, 0.022],
-        'boxobject_size_1': [0.018, 0.022],
-        'boxobject_size_2': [0.018, 0.022],
+        'boxobject_size_0': [0.0298, 0.0302],
+        'boxobject_size_1': [0.0298, 0.0302],
+        'boxobject_size_2': [0.0298, 0.0302],
         'boxobject_friction_0': [0.04, 1.6],
         #'boxobject_friction_1': [0.0025, 0.0075],    # fixed this to zero
         'boxobject_friction_2': [0.00005, 0.00015],
@@ -58,9 +58,9 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
     }
     
     def reset_props(self,
-                    table_size_0=0.8, table_size_1=0.8, table_size_2=0.8,
+                    table_size_0=0.8, table_size_1=0.8, table_size_2=0.903,  # z-position of table surface is lower than robot base by 10 mm in our real settting
                     table_friction_0=0., table_friction_1=0.005, table_friction_2=0.0001,
-                    boxobject_size_0=0.020, boxobject_size_1=0.020, boxobject_size_2=0.020,
+                    boxobject_size_0=0.030, boxobject_size_1=0.030, boxobject_size_2=0.030,
                     boxobject_friction_0=0.1, boxobject_friction_1=0.0, boxobject_friction_2=0.0001,
                     boxobject_density_1000=0.1,
                     **kwargs):
@@ -111,13 +111,13 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             #     z_rotation=None,
             # )
             self.placement_initializer = UniformRandomSamplerObjectSpecific(
-                x_ranges=[[-0.03, -0.02], [0.09, 0.1]],
+                x_ranges=[[-0.03, -0.02], [0.09, 0.1]], # the position here is the table base, but self.sim.data.site_xpos[self.goal_site_id] gives the position of goal in robot base
+
                 y_ranges=[[-0.05, -0.04], [-0.05, -0.04]],
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,
             )
             
-
         # for first initialization
         self.table_full_size = (0.8, 0.8, 0.8)
         self.table_friction = (0., 0.005, 0.0001)
@@ -190,7 +190,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         ]
         self.cube_geom_id = self.sim.model.geom_name2id("cube")
 
-        # gripper ids
+        # ids
         self.goal_body_id = self.sim.model.body_name2id('goal')
         self.goal_site_id = self.sim.model.site_name2id('goal')
 
@@ -203,6 +203,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
         # reset positions of objects
         self.model.place_objects()
+        print(self.sim.data.site_xpos[self.goal_site_id])
 
         # reset joint positions
         init_pos = self.mujoco_robot.init_qpos
