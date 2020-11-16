@@ -45,15 +45,15 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         'table_size_0': [0.7, 0.9],
         'table_size_1': [0.7, 0.9],
         'table_size_2': [0.7, 0.9],
-        #'table_friction_0': [0.4, 1.6],
-        'table_friction_1': [0.0025, 0.0075],
-        'table_friction_2': [0.00005, 0.00015],
+        'table_friction_0': [0.0, 0.0],
+        'table_friction_1': [0.0, 0.0],
+        'table_friction_2': [0.0, 0.0],
         'boxobject_size_0': [0.0298, 0.0302],
         'boxobject_size_1': [0.0298, 0.0302],
         'boxobject_size_2': [0.0298, 0.0302],
-        'boxobject_friction_0': [0.04, 1.6],
-        #'boxobject_friction_1': [0.0025, 0.0075],    # fixed this to zero
-        'boxobject_friction_2': [0.00005, 0.00015],
+        'boxobject_friction_0': [0.05, 0.15],  # tangential
+        'boxobject_friction_1': [0.0, 0.002],  # torsional
+        'boxobject_friction_2': [0.00005, 0.00015],  # rolling
         'boxobject_density_1000': [0.6, 1.4],
     }
     
@@ -61,8 +61,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
                     table_size_0=0.8, table_size_1=0.8, table_size_2=0.903,  # z-position of table surface is lower than robot base by 10 mm in our real settting
                     table_friction_0=0., table_friction_1=0.005, table_friction_2=0.0001,
                     boxobject_size_0=0.030, boxobject_size_1=0.030, boxobject_size_2=0.030,
-                    boxobject_friction_0=0.1, boxobject_friction_1=0.0, boxobject_friction_2=0.0001,
-                    boxobject_density_1000=0.1,
+                    boxobject_friction_0=0.1, boxobject_friction_1=0.001, boxobject_friction_2=0.0001,
+                    boxobject_density_1000=1.,
                     **kwargs):
         
         self.table_full_size = (table_size_0, table_size_1, table_size_2)
@@ -203,7 +203,6 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
         # reset positions of objects
         self.model.place_objects()
-        print(self.sim.data.site_xpos[self.goal_site_id])
 
         # reset joint positions
         init_pos = self.mujoco_robot.init_qpos
