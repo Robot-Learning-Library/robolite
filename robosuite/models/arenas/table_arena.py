@@ -33,7 +33,8 @@ class TableArena(Arena):
         self.bottom_pos = np.array([0, 0, 0])
         self.floor.set("pos", array_to_string(self.bottom_pos))
 
-        self.center_pos = self.bottom_pos + np.array([0, 0, self.table_half_size[2]])
+        self.center_pos = self.bottom_pos + np.array([0, 0, self.table_half_size[2]])  # a good simulation pose
+        self.center_pos = self.bottom_pos + np.array([-0.55, 0.7, self.table_half_size[2]])  # matched with real pose
         self.table_body.set("pos", array_to_string(self.center_pos))
         self.table_collision.set("size", array_to_string(self.table_half_size))
         self.table_collision.set("friction", array_to_string(self.table_friction))

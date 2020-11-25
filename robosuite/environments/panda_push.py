@@ -104,16 +104,15 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         if placement_initializer:
             self.placement_initializer = placement_initializer
         else:
-            # self.placement_initializer = UniformRandomSampler(
-            #     x_range=[-0.1, 0.1],
-            #     y_range=[-0.1, 0.1],
-            #     ensure_object_boundary_in_range=False,
-            #     z_rotation=None,
-            # )
             self.placement_initializer = UniformRandomSamplerObjectSpecific(
-                x_ranges=[[-0.03, -0.02], [0.09, 0.1]], # the position here is the table base, but self.sim.data.site_xpos[self.goal_site_id] gives the position of goal in robot base
+                # a good simulation pose
+                # x_ranges=[[-0.03, -0.02], [0.09, 0.1]], # the position here is the table base, but self.sim.data.site_xpos[self.goal_site_id] gives the position of goal in robot base
+                # y_ranges=[[-0.05, -0.04], [-0.05, -0.04]],
 
-                y_ranges=[[-0.05, -0.04], [-0.05, -0.04]],
+                # matched with real pose
+                x_ranges=[[-0.5, -0.6], [-0.5, -0.6]],
+                y_ranges=[[0.44, 0.46], [0.73, 0.75]],
+
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,
             )
@@ -206,7 +205,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
         # reset joint positions
         init_pos = self.mujoco_robot.init_qpos
-        init_pos += np.random.randn(init_pos.shape[0]) * 0.02
+        init_pos += np.random.randn(init_pos.shape[0]) * 0.02  # a good simulation pose
+        init_pos = [1.57103,0.144537, 0 ,-2.97299, 0, 3.11744,0.785635]  # matched with real pose
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
         # shut the gripper
         self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes] = np.array([0., -0.])
