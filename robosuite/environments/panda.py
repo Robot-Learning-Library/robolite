@@ -54,7 +54,7 @@ class PandaEnv(MujocoEnv):
         has_offscreen_renderer=False,
         render_collision_mesh=False,
         render_visual_mesh=True,
-        control_freq=10,
+        control_freq=20,
         horizon=1000,
         ignore_done=False,
         use_camera_obs=False,
@@ -322,6 +322,8 @@ class PandaEnv(MujocoEnv):
         weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
         bias[-2:] = 2*[0.]  # modified: the bias for gripper shoule be 0.
         applied_action = bias + weight * action
+
+        applied_action = action  # do not rescale to keep the input action
 
         # Two gripper control modes:
         # 1. Control the gripper with action directly being position

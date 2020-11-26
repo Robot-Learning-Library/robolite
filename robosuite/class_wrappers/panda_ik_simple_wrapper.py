@@ -94,7 +94,7 @@ def conj_quat(quat):
     functions.mju_negQuat(res, quat)
     return res
 
-def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=0.5, pose_mat=None, limit_range=None):
+def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=1., pose_mat=None, limit_range=None):
     ik_dof = 2 if fix_z is not None else 3
     if rotation:   # if allowing rotation control for EE, add 3 dims of euler for EE orientation
         ik_dof += 3
@@ -185,8 +185,10 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=0.5, p
             ee_tget = np.concatenate([ee_tget[:-3], euler2quat(ee_tget[-3:])])  # change last 3 dims for orientation from euler to quaternion
 
             ee_jac = self.jac_geom("hand_visual")  # get the jacobian w.r.t. a geom with its name
-            vel = np.hstack(((ee_tget[:3] - ee_curr[:3]) / 5,    # divided by 5 to generate small action
+            # vel = np.hstack(((ee_tget[:3] - ee_curr[:3]) /5,    # divided by 5 to generate small action, but will affect the velocity in simulation
+            vel = np.hstack(((ee_tget[:3] - ee_curr[:3]),  
                                 quat2vel(mul_quat(ee_tget[-4:], conj_quat(ee_curr[-4:])), 1)))   # difference of quaternions is calculated with  M^(-1)^T * N: inverse transpose is conjugate 
+
             qvel = np.matmul(np.linalg.pinv(ee_jac), vel.transpose())
             
             final_action = np.concatenate([np.asarray(qvel).squeeze(), action_other])

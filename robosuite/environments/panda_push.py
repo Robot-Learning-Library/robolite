@@ -352,10 +352,10 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         # z_angle = di['z_angle']
         # sine_cosine = np.array([np.sin(8*z_angle), np.cos(8*z_angle)]).reshape((2,))
 
-        # eef_to_object_in_world = di['object_pos_in_world'] - di['eef_pos_in_world']
+        eef_to_object_in_world = di['object_pos_in_world'] - di['eef_pos_in_world']
         # eef_to_object_in_eef = self.world2eef(eef_to_object_in_world)
 
-        # object_to_goal_in_world = di['goal_pos_in_world'] - di['object_pos_in_world']
+        object_to_goal_in_world = di['goal_pos_in_world'] - di['object_pos_in_world']
         # object_to_goal_in_eef = self.world2eef(object_to_goal_in_world)
 
         
@@ -369,11 +369,10 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         object_euler = mat2euler(quat2mat(di['object_quat']))
 
         # raw state for convenience of real-world experiments
-        task_state = np.concatenate([di['eef_pos_in_world'],
-                                di['eef_vel_in_world'],
-                                di['goal_pos_in_world'],
-                                di['object_pos_in_world'],
-                                object_euler])                    
+        task_state = np.concatenate([eef_to_object_in_world,
+                                    object_to_goal_in_world,
+                                    di['eef_vel_in_world'],
+                                    object_euler])  
 
         di['task_state'] = task_state
 
