@@ -111,7 +111,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
                 # matched with real pose
                 x_ranges=[[-0.5, -0.6], [-0.5, -0.6]],
-                y_ranges=[[0.44, 0.46], [0.73, 0.75]],
+                y_ranges=[[0.44, 0.46], [0.63, 0.65]],
 
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,

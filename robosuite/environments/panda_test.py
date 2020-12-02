@@ -15,7 +15,6 @@ from robosuite.models.tasks import TableTopTask, UniformRandomSamplerObjectSpeci
 
 from robosuite.class_wrappers import change_dof
 
-
 # https://stackoverflow.com/a/13849249/11815215
 
 def unit_vector(vector):
@@ -40,7 +39,7 @@ def sin_cos_encoding(arr):
     """ Encode an array of angle value to correspongding Sines and Cosines, avoiding value jump in 2PI measure like from PI to -PI. """
     return np.concatenate((np.sin(arr), np.cos(arr)))
 
-class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control the gripper; better not remove change_dof
+class PandaTest(change_dof(PandaEnv, 8, 8)): # keep the dimension to control the gripper; better not remove change_dof
     """
     This class corresponds to the pushing task for the Panda robot arm.
     """
@@ -216,8 +215,10 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
 
         # reset joint positions
         # self.sim.data.qpos[self._ref_joint_pos_indexes] = [0.02085236,  0.20386552,  0.00569112, -2.60645364,  2.8973697, 3.53509316, 2.89737955]  # a initial gesture: facing downwards
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10259647, -0.77839656,  0.27246156, -2.35741103,  1.647504,  3.43102572, -0.85707793]   # a good initial gesture： facing horizontally
+        # self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10259647, -0.77839656,  0.27246156, -2.35741103,  1.647504,  3.43102572, -0.85707793]   # a good initial gesture： facing horizontally
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = [ [ 0.10259644, -0.77839582,  0.27246505, -2.35741259,  1.64749918,  3.43102566, 0.94114887]]   
 
+        
         # open the gripper
         self.sim.data.ctrl[-2:] = np.array([0.04, -0.04])  # panda gripper finger joint range is -0.04~0.04
 
@@ -239,7 +240,6 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             reward (float): the reward
             previously in robosuite-extra, when dense reward is used, the return value will be a dictionary. but we removed that feature.
         """
-        # self.ee_ori = quat2euler(mat2quat(self._right_hand_orn))
         self.get_gripper_state()
         reward = 0.
         self.door_open_angle = abs(self.sim.data.get_joint_qpos("hinge0"))

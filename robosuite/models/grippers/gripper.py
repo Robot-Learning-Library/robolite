@@ -71,12 +71,12 @@ class Gripper(MujocoXML):
         """
         raise NotImplementedError
 
-    @property
-    def right_finger_geoms(self):
-        """
-        Geoms corresponding to raise finger of a gripper
-        """
-        raise NotImplementedError
+    # @property
+    # def right_finger_geoms(self):
+    #     """
+    #     Geoms corresponding to raise finger of a gripper
+    #     """
+    #     raise NotImplementedError
 
     def hide_visualization(self):
         """

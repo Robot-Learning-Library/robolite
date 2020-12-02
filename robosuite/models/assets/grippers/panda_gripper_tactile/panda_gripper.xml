@@ -36,84 +36,100 @@
             <!-- This site was added for visualization. -->
             <site name="grip_site_cylinder" pos="0 0 0.1399" size="0.005 10" rgba="0 1 0 0.3" type="cylinder" group="1"/>
 
-            <body name="leftfinger" pos="0 0 0.0524" quat="0.707107 0 0 0.70">
+            <body name="leftfinger" pos="0 0 0.0524" quat="0.707107 0 0 0.707107">
                 <inertial pos="0 0 0.05" mass="0.1" diaginertia="0.01 0.01 0.005" />
                 <joint name="finger_joint1" pos="0 0 0" axis="0 1 0" type="slide" limited="true" range="0.0 0.04" damping="100"/>
                 <geom quat="0.707107 0.707107 0 0" type="mesh" contype="1" conaffinity="1" group="1" mesh="finger_vis" name="finger1_visual"/>
 
                 <!-- left finger tactile -->
                 <body name="touch_l1_body" pos="-0.004 0.0001 0.039"  >
+                <joint type="slide" range="0 0.001"/>
+                <!-- <joint type="free"/> -->
                 <site name="touch_l1" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad1"/>
                 </body>
 
                 <body name="touch_l2_body" pos="-0.004 0.0001 0.045"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l2" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad2"/>
                 </body>
 
                 <body name="touch_l3_body" pos="-0.004 0.0001 0.051"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l3" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad3"/>
                 </body>
  
                 <body name="touch_l4_body" pos="-0.004 0.0001 0.057"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l4" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad4"/>
                 </body>
 
                 <body name="touch_l5_body" pos="-0.004 0.0001 0.063"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l5" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad5"/>
                 </body>
 
                 <body name="touch_l6_body" pos="0 0.0001 0.042"  >
+                <joint type="slide" range="0 0.001"/>
                 <!-- <geom type="box" pos="0.002 -0.0035 0.0536" size=".001 .005 .005" rgba="0 .8 .6 0.5" contype="0" conaffinity="0"/> -->
                 <site name="touch_l6" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad6"/>
                 </body>
 
                 <body name="touch_l7_body" pos="0 0.0001 0.048"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l7" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad7"/>
                 </body>
 
                 <body name="touch_l8_body" pos="0 0.0001 0.054"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l8" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad8"/>
                 </body>
 
                 <body name="touch_l9_body" pos="0 0.0001 0.060"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l9" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad9"/>
                 </body>
 
                 <body name="touch_l10_body" pos="0 0.0001 0.066"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l10" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad10"/>
                 </body>
 
                 <body name="touch_l11_body" pos="0.004 0.0001 0.039"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l11" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad11"/>
                 </body>
 
                 <body name="touch_l12_body" pos="0.004 0.0001 0.045"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l12" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad12"/>
                 </body>
 
                 <body name="touch_l13_body" pos="0.004 0.0001 0.051"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l13" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad13"/>
                 </body>
 
                 <body name="touch_l14_body" pos="0.004 0.0001 0.057"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l14" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad14"/>
                 </body>
 
                 <body name="touch_l15_body" pos="0.004 0.0001 0.063"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_l15" type="cylinder" pos="0 -0.0001 0" size="0.002 0.0007" euler="1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="lpad15"/>
                 </body>
@@ -131,7 +147,7 @@
             </body>
 
 
-            <body name="rightfinger" pos="0 0 0.0524" quat="0.707107 0 0 0.70">
+            <body name="rightfinger" pos="0 0 0.0524" quat="0.707107 0 0 0.707107">
                 <inertial pos="0 0 0.05" mass="0.1" diaginertia="0.01 0.01 0.005" />
                 <joint name="finger_joint2" pos="0 0 0" axis="0 1 0" type="slide" limited="true" range="-0.04 0.0" damping="100"/>
                 <!-- <geom quat="0 0 0.707107 0.707107" type="mesh" contype="0" conaffinity="0" group="1" mesh="finger_vis" name="finger2_visual"/> -->
@@ -140,77 +156,92 @@
 
                 <!-- right finger tactile -->
                 <body name="touch_r1_body" pos="-0.004 0.0001 0.039"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r1" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad1"/>
                 </body>
 
                 <body name="touch_r2_body" pos="-0.004 0.0001 0.045"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r2" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad2"/>
                 </body>
 
                 <body name="touch_r3_body" pos="-0.004 0.0001 0.051"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r3" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad3"/>
                 </body>
  
                 <body name="touch_r4_body" pos="-0.004 0.0001 0.057"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r4" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad4"/>
                 </body>
 
                 <body name="touch_r5_body" pos="-0.004 0.0001 0.063"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r5" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad5"/>
                 </body>
 
                 <body name="touch_r6_body" pos="0 0.0001 0.042"  >
+                <joint type="slide" range="0 0.001"/>
                 <!-- <geom type="box" pos="0.002 -0.0035 0.0536" size=".001 .005 .005" rgba="0 .8 .6 0.5" contype="0" conaffinity="0"/> -->
                 <site name="touch_r6" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad6"/>
                 </body>
 
                 <body name="touch_r7_body" pos="0 0.0001 0.048"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r7" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad7"/>
                 </body>
 
                 <body name="touch_r8_body" pos="0 0.0001 0.054"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r8" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad8"/>
                 </body>
 
                 <body name="touch_r9_body" pos="0 0.0001 0.060"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r9" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad9"/>
                 </body>
 
                 <body name="touch_r10_body" pos="0 0.0001 0.066"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r10" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad10"/>
                 </body>
 
                 <body name="touch_r11_body" pos="0.004 0.0001 0.039"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r11" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad11"/>
                 </body>
 
                 <body name="touch_r12_body" pos="0.004 0.0001 0.045"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r12" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad12"/>
                 </body>
 
                 <body name="touch_r13_body" pos="0.004 0.0001 0.051"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r13" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad13"/>
                 </body>
 
                 <body name="touch_r14_body" pos="0.004 0.0001 0.057"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r14" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad14"/>
                 </body>
 
                 <body name="touch_r15_body" pos="0.004 0.0001 0.063"  >
+                <joint type="slide" range="0 0.001"/>
                 <site name="touch_r15" type="cylinder" pos="0 0.0001 0" size="0.002 0.0007" euler="-1.5708 0 0" rgba="0 0.5 0.5 0.33"/>
                 <geom type= "cylinder" size="0.002 0.0007" euler="1.5708 0 0" contype="1" conaffinity="1" group="1" name="rpad15"/>
                 </body>

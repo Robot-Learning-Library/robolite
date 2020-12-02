@@ -180,14 +180,13 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=1., po
 
             if rotation is False:
                 action = np.concatenate([action, [0.,0.,0.]])  # add zero rotations to three axis to construct a complete action vector 
-
             ee_tget = action + np.concatenate([ee_curr[:-4], quat2euler(ee_curr[-4:])])    # change last 3 dims for orientation from quaternion to euler
             ee_tget = np.concatenate([ee_tget[:-3], euler2quat(ee_tget[-3:])])  # change last 3 dims for orientation from euler to quaternion
 
             ee_jac = self.jac_geom("hand_visual")  # get the jacobian w.r.t. a geom with its name
             # vel = np.hstack(((ee_tget[:3] - ee_curr[:3]) /5,    # divided by 5 to generate small action, but will affect the velocity in simulation
             vel = np.hstack(((ee_tget[:3] - ee_curr[:3]),  
-                                quat2vel(mul_quat(ee_tget[-4:], conj_quat(ee_curr[-4:])), 1)))   # difference of quaternions is calculated with  M^(-1)^T * N: inverse transpose is conjugate 
+                                quat2vel(mul_quat(ee_tget[-4:], conj_quat(ee_curr[-4:])), 1)))    # difference of quaternions is calculated with  M^(-1)^T * N: inverse transpose is conjugate 
 
             qvel = np.matmul(np.linalg.pinv(ee_jac), vel.transpose())
             
