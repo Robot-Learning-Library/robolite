@@ -9,9 +9,10 @@ from gym.envs.robotics.rotations import quat2euler, euler2quat, mat2euler, quat_
 from robosuite.utils import transform_utils as T
 
 from robosuite.models.arenas import TableCabinetArena
-from robosuite.models.objects import FullyFrictionalBoxObject, CylinderObject
+from robosuite.models.objects import FullyFrictionalBoxObject, CylinderObject, BoxObject
 from robosuite.models.robots import Panda
 from robosuite.models.tasks import TableTopTask, UniformRandomSamplerObjectSpecific
+from robosuite.utils.mjcf_utils import new_joint, array_to_string
 
 from robosuite.class_wrappers import change_dof
 
@@ -54,15 +55,15 @@ class PandaTest(change_dof(PandaEnv, 8, 8)): # keep the dimension to control the
         # 'table_size_0': [0.7, 0.9],
         # 'table_size_1': [0.7, 0.9],
         # 'table_size_2': [0.7, 0.9],
-        #'table_friction_0': [0.4, 1.6],
+        # 'table_friction_0': [0.4, 1.6],
         # 'table_friction_1': [0.0025, 0.0075],
         # 'table_friction_2': [0.00005, 0.00015],
         # 'boxobject_size_0': [0.018, 0.022],
         # 'boxobject_size_1': [0.018, 0.022],
         # 'boxobject_size_2': [0.018, 0.022],
-        # 'boxobject_friction_0': [0.04, 1.6],
-        #'boxobject_friction_1': [0.0025, 0.0075],    # fixed this to zero
-        # 'boxobject_friction_2': [0.00005, 0.00015],
+        # 'boxobject_friction_0': [0.05, 0.15],  # tangential
+        # 'boxobject_friction_1': [0.0, 0.002],  # torsional
+        # 'boxobject_friction_2': [0.00005, 0.00015],  # rolling
         # 'boxobject_density_1000': [0.6, 1.4],
     }
     
@@ -129,26 +130,19 @@ class PandaTest(change_dof(PandaEnv, 8, 8)): # keep the dimension to control the
         if placement_initializer:
             self.placement_initializer = placement_initializer
         else:
-            # self.placement_initializer = UniformRandomSampler(
-            #     x_range=[-0.1, 0.1],
-            #     y_range=[-0.1, 0.1],
-            #     ensure_object_boundary_in_range=False,
-            #     z_rotation=None,
-            # )
             self.placement_initializer = UniformRandomSamplerObjectSpecific(
-                x_ranges=[[-0.03, -0.02], [0.09, 0.1]],
-                y_ranges=[[-0.05, -0.04], [-0.05, -0.04]],
+                x_ranges = [[-1, -1]],
+                y_ranges = [[-1, -1]],
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,
             )
             
-
         # for first initialization
         self.table_full_size = (0.8, 0.8, 0.8)
         self.table_friction = (0., 0.005, 0.0001)
-        # self.boxobject_size = (0.02, 0.02, 0.02)
-        # self.boxobject_friction = (0.1, 0.005, 0.0001)
-        # self.boxobject_density = 100.
+        self.boxobject_size = (0.02, 0.02, 0.02)
+        self.boxobject_friction = (0.1, 0.005, 0.0001)
+        self.boxobject_density = 100.
 
         self.object_obs_process = object_obs_process
         self.grasp_state = False
@@ -166,14 +160,22 @@ class PandaTest(change_dof(PandaEnv, 8, 8)): # keep the dimension to control the
         self.mujoco_arena = TableCabinetArena(
             table_full_size=self.table_full_size, table_friction=self.table_friction
         )
+
         if self.use_indicator_object:
             self.mujoco_arena.add_pos_indicator()
 
         # The panda robot has a pedestal, we want to align it with the table
         self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
         
-        self.mujoco_objects = None
+        cube = FullyFrictionalBoxObject(
+            size=(0.01289/2, 0.0128/2, 0.01/2),
+            friction=0.01,
+            density=61881.788,  # kg/(m^3)   (100+2.1)/1000 kg = 0.01289 * 0.0128 * height * density
+            # rgba=[1, 0, 0, 1],
+        )
 
+        self.mujoco_objects = None
+        
         # task includes arena, robot, and objects of interest
         self.model = TableTopTask(
             self.mujoco_arena,
@@ -182,8 +184,13 @@ class PandaTest(change_dof(PandaEnv, 8, 8)): # keep the dimension to control the
             initializer=self.placement_initializer,
             visual_objects=[],
         )
-        if self.mujoco_objects is not None:
-            self.model.place_objects()
+
+        self.model.merge_asset(cube)
+        self.mujoco_cube = cube.get_collision(name="cube", site=True)
+        # self.mujoco_cube.append(new_joint(name="cube", type="free"))
+        self.model.worldbody.append(self.mujoco_cube)
+
+        self.mujoco_cube.set("pos", array_to_string(np.array([0.38, 0.04699071, 1.61])))
 
     def _get_reference(self):
         """
@@ -216,8 +223,9 @@ class PandaTest(change_dof(PandaEnv, 8, 8)): # keep the dimension to control the
         # reset joint positions
         # self.sim.data.qpos[self._ref_joint_pos_indexes] = [0.02085236,  0.20386552,  0.00569112, -2.60645364,  2.8973697, 3.53509316, 2.89737955]  # a initial gesture: facing downwards
         # self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10259647, -0.77839656,  0.27246156, -2.35741103,  1.647504,  3.43102572, -0.85707793]   # a good initial gesture： facing horizontally
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = [ [ 0.10259644, -0.77839582,  0.27246505, -2.35741259,  1.64749918,  3.43102566, 0.94114887]]   
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = [ [ 0, 0,0,0,0,np.pi/2,np.pi*3/4]]  
 
+        # self.mujoco_cube.set("pos", array_to_string(np.array([0.38, 0.04699071, 1.61])))
         
         # open the gripper
         self.sim.data.ctrl[-2:] = np.array([0.04, -0.04])  # panda gripper finger joint range is -0.04~0.04
@@ -240,6 +248,7 @@ class PandaTest(change_dof(PandaEnv, 8, 8)): # keep the dimension to control the
             reward (float): the reward
             previously in robosuite-extra, when dense reward is used, the return value will be a dictionary. but we removed that feature.
         """
+        # print(self.sim.data.get_body_xpos("rightfinger"))
         self.get_gripper_state()
         reward = 0.
         self.door_open_angle = abs(self.sim.data.get_joint_qpos("hinge0"))
@@ -288,8 +297,7 @@ class PandaTest(change_dof(PandaEnv, 8, 8)): # keep the dimension to control the
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
-
-        # print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues: force tactile
+        print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues: force tactile
 
         # print(self.sim.data.sensordata[6:]) # Gives array of all sensorvalues: touch tactile
 
@@ -300,64 +308,6 @@ class PandaTest(change_dof(PandaEnv, 8, 8)): # keep the dimension to control the
         #     reward += 0.1
             # self.done = True
 
-
-        # worldHknob = self.sim.data.get_body_xquat("knob_link")
-        # knobHee_desired = euler2quat(quat2euler([0.5, 0.5, -0.5, 0.5]))
-        # worldHee_desired = quat_mul(worldHknob, knobHee_desired)
-        # print(quat2euler(worldHee_desired), quat2euler(worldHknob), self.get_finger_ori() )
-
-
-        # # sparse completion reward
-        # if not self.reward_shaping and self._check_success():
-        #     reward = 1.0
-
-        # # use a dense reward
-        # if self.reward_shaping:
-        #     object_pos = self.sim.data.body_xpos[self.cube_body_id]
-
-        #     # max joint angles reward
-        #     joint_limits = self._joint_ranges
-        #     current_joint_pos = self._joint_positions
-
-        #     hitting_limits_reward = - int(any([(x < joint_limits[i, 0] + 0.05 or x > joint_limits[i, 1] - 0.05) for i, x in
-        #                                       enumerate(current_joint_pos)]))
-
-        #     reward += hitting_limits_reward
-
-        #     # reaching reward
-        #     gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-        #     dist = np.linalg.norm(gripper_site_pos - object_pos)
-        #     reaching_reward = -0.4 * dist
-        #     reward += reaching_reward
-
-        #     # print(gripper_site_pos, object_pos, reaching_reward)
-
-        #     # Success Reward
-        #     success = self._check_success()
-        #     if (success):
-        #         reward += 0.1
-
-        #     # goal distance reward
-        #     goal_pos = self.sim.data.site_xpos5707963267948966bject--gripper--goal
-        #     angle_g_o_g = angle_between(gripper_site_pos - object_pos,
-        #                                 goal_pos - object_pos)
-        #     if not success and angle_g_o_g < np.pi / 2.:
-        #         reward += -0.03 - 0.02 * (np.pi / 2. - angle_g_o_g)
-
-        #     # print('grippersitepos', gripper_site_pos,
-        #     #       'objpos', object_pos,
-        #     #       'jointangles', hitting_limits_reward,
-        #     #       'reaching', reaching_reward,
-        #     #       'success', success,
-        #     #       'goaldist', goal_distance_reward)
-
-        #     unstable = reward < -2.5
-
-        #     # Return all three types of rewards
-        #     reward = {"reward": reward, "reaching_distance": -10 * reaching_reward,
-        #               "goal_distance": - goal_distance_reward,
-        #               "hitting_limits_reward": hitting_limits_reward,
-        #               "unstable":unstable}
 
         return reward
     
