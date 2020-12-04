@@ -72,7 +72,5 @@ class TableTopTask(Task):
         """Places objects randomly until no collisions or max iterations hit."""
         pos_arr, quat_arr = self.initializer.sample()
         for i in range(len(self.objects)):
-            # self.objects[i].set("pos", array_to_string(pos_arr[i]))
-            import numpy as np
-            self.objects[i].set("pos", array_to_string(np.array([0.16, 1.96328484e-05, 2.02])))
+            self.objects[i].set("pos", array_to_string(pos_arr[i]))
             self.objects[i].set("quat", array_to_string(quat_arr[i]))
