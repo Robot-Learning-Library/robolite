@@ -111,7 +111,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
                 # matched with real pose
                 x_ranges=[[-0.5, -0.6], [-0.5, -0.6]],
-                y_ranges=[[0.44, 0.46], [0.63, 0.65]],
+                y_ranges=[[0.4, 0.45], [0.55, 0.6]],
 
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,
@@ -369,10 +369,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         object_euler = mat2euler(quat2mat(di['object_quat']))
 
         # raw state for convenience of real-world experiments
-        task_state = np.concatenate([
-                                    di['eef_pos_in_world'],
-                                    di['eef_vel_in_world'],
-                                    eef_to_object_in_world,
+        task_state = np.concatenate([eef_to_object_in_world,
                                     object_to_goal_in_world,
                                     di['eef_vel_in_world'],
                                     object_euler])  
