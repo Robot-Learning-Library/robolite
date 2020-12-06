@@ -12,13 +12,13 @@ class PandaEnv(MujocoEnv):
     """Initializes a Panda robot environment."""
 
     parameters_spec = {
-        'link1_mass': [2.9, 3.1],
-        'link2_mass': [2.9, 3.1],
-        'link3_mass': [1.9, 2.1],
-        'link4_mass': [1.9, 2.1],
-        'link5_mass': [1.9, 2.1],
-        'link6_mass': [1.4, 1.6],
-        'link7_mass': [0.4, 0.6],
+        # 'link1_mass': [2.9, 3.1],
+        # 'link2_mass': [2.9, 3.1],
+        # 'link3_mass': [1.9, 2.1],
+        # 'link4_mass': [1.9, 2.1],
+        # 'link5_mass': [1.9, 2.1],
+        # 'link6_mass': [1.4, 1.6],
+        # 'link7_mass': [0.4, 0.6],
         'joint1_damping': [0.06, 0.14],
         'joint2_damping': [0.06, 0.14],
         'joint3_damping': [0.06, 0.14],
@@ -110,6 +110,7 @@ class PandaEnv(MujocoEnv):
         self.gripper_type = gripper_type
         self.gripper_visualization = gripper_visualization
         self.use_indicator_object = use_indicator_object
+        self.params_dict = {}
         super().__init__(
             has_renderer=has_renderer,
             has_offscreen_renderer=has_offscreen_renderer,
@@ -127,13 +128,21 @@ class PandaEnv(MujocoEnv):
 
     def reset_props(self, **kwargs):
         parameters_defaults = {
-            'link1_mass': 3.0,
-            'link2_mass': 3.0,
-            'link3_mass': 2.0,
-            'link4_mass': 2.0,
-            'link5_mass': 2.0,
-            'link6_mass': 1.5,
-            'link7_mass': 0.5,
+            # 'link1_mass': 3.0,
+            # 'link2_mass': 3.0,
+            # 'link3_mass': 2.0,
+            # 'link4_mass': 2.0,
+            # 'link5_mass': 2.0,
+            # 'link6_mass': 1.5,
+            # 'link7_mass': 0.5,
+            # new mass refer to: https://github.com/mkrizmancic/franka_gazebo/blob/master/robots/panda_arm.xacro
+            'link1_mass': 2.74,
+            'link2_mass': 2.74,
+            'link3_mass': 2.38,
+            'link4_mass': 2.38,
+            'link5_mass': 2.74,
+            'link6_mass': 1.55,
+            'link7_mass': 0.54,
             'joint1_damping': 0.1,
             'joint2_damping': 0.1,
             'joint3_damping': 0.1,
@@ -167,27 +176,7 @@ class PandaEnv(MujocoEnv):
 
             assert(False)  # GZZ: if an error is triggered here, then you must have passed in an invalid parameter keyword to reset(). please check that.
             
-        params_dict = dict(parameters_defaults, **kwargs)
-        
-        for link in self.mujoco_robot._link_body:
-            lie = self.mujoco_robot.root.find(".//body[@name='{}']".format(link)).find("./inertial[@mass]")
-            # <inertial pos="0 0 -0.07" mass="3" diaginertia="0.3 0.3 0.3" />
-            lie.set('mass', str(params_dict['{}_mass'.format(link)]))
-            
-        for joint in self.mujoco_robot._joints:
-            je = self.mujoco_robot.root.find(".//joint[@name='{}']".format(joint))
-            # <joint name="joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-2.8973 2.8973" damping="0.1"/>
-            je.set('damping', str(params_dict['{}_damping'.format(joint)]))
-            je.set('armature', str(params_dict['{}_armature'.format(joint)]))
-
-            avje = self.mujoco_robot.root.find(".//velocity[@joint='{}']".format(joint))
-            # <velocity ctrllimited="true" ctrlrange="-2.1750 2.1750" joint="joint1" kv="40.0" name="vel_right_j1"/>
-            avje.set('kv', str(params_dict['actuator_velocity_{}_kv'.format(joint)]))
-
-        for gripper_joint in self.gripper_joints:
-            gpvje = self.mujoco_robot.root.find(".//position[@joint='{}']".format(gripper_joint))
-            # <position ctrllimited="true" ctrlrange="0.0 0.04" forcelimited="true" forcerange="-20 20" joint="finger_joint1" kp="1000000" name="gripper_joint1" />
-            gpvje.set('kp', str(params_dict['actuator_position_{}_kp_1000000'.format(gripper_joint)] * 1000000.0))
+        self.params_dict = dict(parameters_defaults, **kwargs)  # if same key is assigned value several times, the last value counts, therefore parameters_defaults may be overwritten by **kwargs in DR
 
     def _load_model(self):
         """
@@ -201,11 +190,35 @@ class PandaEnv(MujocoEnv):
                 self.gripper.hide_visualization()
             self.mujoco_robot.add_gripper("right_hand", self.gripper)
 
+        if bool(self.params_dict): # if it is not empty
+            params_dict = self.params_dict.copy()
+            for link in self.mujoco_robot._link_body:
+                lie = self.mujoco_robot.root.find(".//body[@name='{}']".format(link)).find("./inertial[@mass]")
+                # <inertial pos="0 0 -0.07" mass="3" diaginertia="0.3 0.3 0.3" />
+                lie.set('mass', str(params_dict['{}_mass'.format(link)]))
+                print(str(params_dict['{}_mass'.format(link)]))
+                
+            for joint in self.mujoco_robot._joints:
+                je = self.mujoco_robot.root.find(".//joint[@name='{}']".format(joint))
+                # <joint name="joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-2.8973 2.8973" damping="0.1"/>
+                je.set('damping', str(params_dict['{}_damping'.format(joint)]))
+                je.set('armature', str(params_dict['{}_armature'.format(joint)]))
+
+                avje = self.mujoco_robot.root.find(".//velocity[@joint='{}']".format(joint))
+                # <velocity ctrllimited="true" ctrlrange="-2.1750 2.1750" joint="joint1" kv="40.0" name="vel_right_j1"/>
+                avje.set('kv', str(params_dict['actuator_velocity_{}_kv'.format(joint)]))
+
+            for gripper_joint in self.gripper_joints:
+                gpvje = self.mujoco_robot.root.find(".//position[@joint='{}']".format(gripper_joint))
+                # <position ctrllimited="true" ctrlrange="0.0 0.04" forcelimited="true" forcerange="-20 20" joint="finger_joint1" kp="1000000" name="gripper_joint1" />
+                gpvje.set('kp', str(params_dict['actuator_position_{}_kp_1000000'.format(gripper_joint)] * 1000000.0))
+
     def _reset_internal(self):
         """
         Sets initial pose of arm and grippers.
         """
         super()._reset_internal()
+
         self.sim.data.qpos[self._ref_joint_pos_indexes] = self.mujoco_robot.init_qpos
 
 

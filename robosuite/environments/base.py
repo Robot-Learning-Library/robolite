@@ -112,7 +112,9 @@ class MujocoEnv(metaclass=EnvMeta):
         self.camera_width = camera_width
         self.camera_depth = camera_depth
 
-        self._reset_internal()
+        self._reset_internal()  # load model
+        self.reset_props()  # choose parameters
+        self._reset_internal()  # set parameters
 
     def initialize_time(self, control_freq):
         """
