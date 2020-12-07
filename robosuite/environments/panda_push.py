@@ -70,7 +70,6 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         self.boxobject_size = (boxobject_size_0, boxobject_size_1, boxobject_size_2)
         self.boxobject_friction = (boxobject_friction_0, boxobject_friction_1, boxobject_friction_2)
         self.boxobject_density = boxobject_density_1000 * 1000.
-        print(self.table_friction, self.boxobject_size, self.boxobject_friction, self.boxobject_density)
         super().reset_props(**kwargs)
 
     def __init__(self,
