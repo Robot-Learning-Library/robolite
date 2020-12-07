@@ -59,7 +59,7 @@ class TableTopTask(Task):
                 obj = obj_mjcf.get_visual(name=obj_name, site=True)
             else:
                 obj = obj_mjcf.get_collision(name=obj_name, site=True)
-                # obj.append(new_joint(name=obj_name, type="free"))
+                obj.append(new_joint(name=obj_name, type="free"))
                 
             self.objects.append(obj)
             self.worldbody.append(obj)

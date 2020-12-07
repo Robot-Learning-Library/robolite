@@ -177,7 +177,7 @@ class PandaEnv(MujocoEnv):
             assert(False)  # GZZ: if an error is triggered here, then you must have passed in an invalid parameter keyword to reset(). please check that.
             
         self.params_dict = dict(parameters_defaults, **kwargs)  # if same key is assigned value several times, the last value counts, therefore parameters_defaults may be overwritten by **kwargs in DR
-
+        print(self.params_dict)
     def _load_model(self):
         """
         Loads robot and optionally add grippers.
@@ -196,7 +196,6 @@ class PandaEnv(MujocoEnv):
                 lie = self.mujoco_robot.root.find(".//body[@name='{}']".format(link)).find("./inertial[@mass]")
                 # <inertial pos="0 0 -0.07" mass="3" diaginertia="0.3 0.3 0.3" />
                 lie.set('mass', str(params_dict['{}_mass'.format(link)]))
-                print(str(params_dict['{}_mass'.format(link)]))
                 
             for joint in self.mujoco_robot._joints:
                 je = self.mujoco_robot.root.find(".//joint[@name='{}']".format(joint))
