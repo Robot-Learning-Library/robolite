@@ -12,13 +12,13 @@ class PandaEnv(MujocoEnv):
     """Initializes a Panda robot environment."""
 
     parameters_spec = {
-        # 'link1_mass': [2.9, 3.1],
-        # 'link2_mass': [2.9, 3.1],
-        # 'link3_mass': [1.9, 2.1],
-        # 'link4_mass': [1.9, 2.1],
-        # 'link5_mass': [1.9, 2.1],
-        # 'link6_mass': [1.4, 1.6],
-        # 'link7_mass': [0.4, 0.6],
+        'link1_mass': [2., 3.],
+        'link2_mass': [2., 3.],
+        'link3_mass': [2., 3.],
+        'link4_mass': [2., 3.],
+        'link5_mass': [2., 3.],
+        'link6_mass': [1.4, 1.6],
+        'link7_mass': [0.4, 0.6],
         'joint1_damping': [0.06, 0.14],
         'joint2_damping': [0.06, 0.14],
         'joint3_damping': [0.06, 0.14],
