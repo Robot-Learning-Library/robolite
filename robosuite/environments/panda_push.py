@@ -236,20 +236,6 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             reward (float): the reward
             previously in robosuite-extra, when dense reward is used, the return value will be a dictionary. but we removed that feature.
         """
-        for i in range(self.sim.data.ncon):
-            # Note that the contact array has more than `ncon` entries,
-            # so be careful to only read the valid entries.
-            contact = self.sim.data.contact[i]
-            if 'cube' in self.sim.model.geom_id2name(contact.geom1) or 'cube' in self.sim.model.geom_id2name(contact.geom2):
-                print('contact', i)
-                print('dist', contact.dist)
-                print('geom1', contact.geom1, self.sim.model.geom_id2name(contact.geom1))
-                print('geom2', contact.geom2, self.sim.model.geom_id2name(contact.geom2))
-                # There's more stuff in the data structure
-                # See the mujoco documentation for more info!
-                geom2_body = self.sim.model.geom_bodyid[self.sim.data.contact[i].geom2]
-                print(' Contact force on geom2 body', self.sim.data.cfrc_ext[geom2_body])
-                print('norm', np.sqrt(np.sum(np.square(self.sim.data.cfrc_ext[geom2_body]))))
         reward = 0.
 
         # sparse completion reward
