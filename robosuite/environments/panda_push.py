@@ -45,9 +45,9 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         'table_size_0': [0.7, 0.9],
         'table_size_1': [0.7, 0.9],
         'table_size_2': [0.7, 0.9],
-        'table_friction_0': [0.0, 0.0],
-        'table_friction_1': [0.0, 0.0],
-        'table_friction_2': [0.0, 0.0],
+        'table_friction_0': [0.0, 1e-5],
+        'table_friction_1': [0.0, 1e-5],
+        'table_friction_2': [0.0, 1e-5],
         'boxobject_size_0': [0.0298, 0.0302],
         'boxobject_size_1': [0.0298, 0.0302],
         'boxobject_size_2': [0.0298, 0.0302],
@@ -369,7 +369,10 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         object_euler = mat2euler(quat2mat(di['object_quat']))
 
         # raw state for convenience of real-world experiments
-        task_state = np.concatenate([eef_to_object_in_world,
+        task_state = np.concatenate([
+                                    # di['eef_pos_in_world'],
+                                    # di['eef_vel_in_world'],
+                                    eef_to_object_in_world,
                                     object_to_goal_in_world,
                                     di['eef_vel_in_world'],
                                     object_euler])  
