@@ -39,15 +39,15 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
     """
     This class corresponds to the pushing task for the Panda robot arm.
     """
-    
+    minimal_offset = 1e-5
     parameters_spec = {
         **PandaEnv.parameters_spec,
-        'table_size_0': [0.7, 0.9],
-        'table_size_1': [0.7, 0.9],
-        'table_size_2': [0.7, 0.9],
-        'table_friction_0': [0.0, 1e-5],
-        'table_friction_1': [0.0, 1e-5],
-        'table_friction_2': [0.0, 1e-5],
+        'table_size_0': [0.8, 0.8+minimal_offset],
+        'table_size_1': [0.8, 0.8+minimal_offset],
+        'table_size_2': [0.903, 0.903+minimal_offset],
+        'table_friction_0': [0.0, minimal_offset],
+        'table_friction_1': [0.0, minimal_offset],
+        'table_friction_2': [0.0, minimal_offset],
         'boxobject_size_0': [0.0298, 0.0302],
         'boxobject_size_1': [0.0298, 0.0302],
         'boxobject_size_2': [0.0298, 0.0302],
