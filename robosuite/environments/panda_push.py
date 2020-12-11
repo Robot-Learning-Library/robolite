@@ -100,6 +100,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         # reward configuration
         self.reward_shaping = reward_shaping
 
+        object_ini_area = [0.375, 0.2]  # length: x, width: y
+        goal_pos_area = [0.275, 0.15]
         # object placement initializer
         if placement_initializer:
             self.placement_initializer = placement_initializer
@@ -110,9 +112,12 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
                 # y_ranges=[[-0.05, -0.04], [-0.05, -0.04]],
 
                 # matched with real pose
-                x_ranges=[[-0.5, -0.6], [-0.5, -0.6]],
-                y_ranges=[[0.4, 0.45], [0.55, 0.6]],
+                # x_ranges=[[-0.5, -0.6], [-0.5, -0.6]],
+                # y_ranges=[[0.4, 0.45], [0.55, 0.6]],
 
+                x_ranges=[[-object_ini_area[0]/2, object_ini_area[0]/2], [-goal_pos_area[0]/2, goal_pos_area[0]/2]],
+                y_ranges=[[-0.206-object_ini_area[1]/2, -0.206+object_ini_area[1]/2], [0.044-goal_pos_area[1]/2, 0.044+goal_pos_area[1]/2]],
+                
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,
             )
@@ -143,7 +148,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             self.mujoco_arena.add_pos_indicator()
 
         # The panda robot has a pedestal, we want to align it with the table
-        self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
+        # self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
+        self.mujoco_arena.set_origin([0, 0.7, 0])  # match with reality
 
         # initialize objects of interest
         # in original robosuite, a simple domain randomization is included in BoxObject implementation, and called here. We choose to discard that implementation.
