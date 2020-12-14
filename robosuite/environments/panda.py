@@ -176,7 +176,7 @@ class PandaEnv(MujocoEnv):
 
             assert(False)  # GZZ: if an error is triggered here, then you must have passed in an invalid parameter keyword to reset(). please check that.
             
-        self.params_dict = dict(parameters_defaults, **kwargs)  # if same key is assigned value several times, the last value counts, therefore parameters_defaults may be overwritten by **kwargs in DR
+        self.params_dict.update(parameters_defaults, **kwargs)  # if same key is assigned value several times, the last value counts, therefore parameters_defaults may be overwritten by **kwargs in DR
 
     def _load_model(self):
         """

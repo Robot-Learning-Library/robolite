@@ -23,4 +23,5 @@ from .panda_ik_simple_wrapper import panda_ik_simple_wrapper
 from .obs_noise_wrapper import obs_noise_wrapper
 from .obs_delay_wrapper import obs_delay_wrapper
 from .action_noise_wrapper import action_noise_wrapper
+from .latent_dynamics_encoder import latent_dynamics_encoder
 
