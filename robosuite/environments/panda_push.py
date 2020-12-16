@@ -114,7 +114,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         # reward configuration
         self.reward_shaping = reward_shaping
 
-        object_ini_area = [0.325, 0.2]  # length: x, width: y
+        object_ini_area = [0.275, 0.15]  # length: x, width: y
         goal_pos_area = [0.225, 0.15]
         # object placement initializer
         if placement_initializer:
