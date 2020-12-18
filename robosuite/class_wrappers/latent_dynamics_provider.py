@@ -11,12 +11,12 @@ def latent_dynamics_provider(Env, params_to_attach = 'all'):
                 self.params_to_attach = {k:v for k, v in self.params_dict.items() if k in params_to_attach}
             # print('reset: ', self.params_to_encode)
             info={}
-            info['dynamics_params'] = self.params_to_attach.values()
+            info['dynamics_params'] = list(self.params_to_attach.values())
             return obs, info
 
         def step(self, action):
             obs, reward, done, info = super().step(action)
-            info['dynamics_params'] = self.params_to_attach.values()
+            info['dynamics_params'] = list(self.params_to_attach.values())
             return obs, reward, done, info
 
     return DynamicsParams

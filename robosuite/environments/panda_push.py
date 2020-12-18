@@ -131,7 +131,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
                 x_ranges=[[-object_ini_area[0]/2, object_ini_area[0]/2], [-goal_pos_area[0]/2, goal_pos_area[0]/2]],
                 y_ranges=[[-0.206-object_ini_area[1]/2, -0.206+object_ini_area[1]/2], [0.044-goal_pos_area[1]/2, 0.044+goal_pos_area[1]/2]],
-                
+
                 ensure_object_boundary_in_range=False,
                 z_rotation=None,
             )
