@@ -71,7 +71,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         self.boxobject_friction = (boxobject_friction_0, boxobject_friction_1, boxobject_friction_2)
         self.boxobject_density = boxobject_density_1000 * 1000.
         super().reset_props(**kwargs)  # keep the same order as parameters_spec, so put this before self.params_dict.udpate()
-        self.params_dict.update({'table_size_0': table_size_0, 
+        self.params_dict.update({
+                            'table_size_0': table_size_0, 
                             'table_size_1': table_size_1,
                             'table_size_2': table_size_2,
                             'table_friction_0': table_friction_0,
@@ -162,7 +163,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             self.mujoco_arena.add_pos_indicator()
 
         # The panda robot has a pedestal, we want to align it with the table
-        # self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
+        # self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])  # good simulation setting
         self.mujoco_arena.set_origin([0, 0.7, 0])  # match with reality
 
         # initialize objects of interest

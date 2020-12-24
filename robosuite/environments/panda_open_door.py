@@ -44,7 +44,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     """
     This class corresponds to the pushing task for the Panda robot arm.
     """
-    
+    minimal_offset = 1e-5
     parameters_spec = {
         **PandaEnv.parameters_spec,
         'hinge_stiffness': [0.1, 0.3],
@@ -52,19 +52,9 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         'hinge_frictionloss': [0., 1.,],
         'door_mass': [50, 150],
         'knob_mass': [2, 10],
-        # 'table_size_0': [0.7, 0.9],
-        # 'table_size_1': [0.7, 0.9],
-        # 'table_size_2': [0.7, 0.9],
-        #'table_friction_0': [0.4, 1.6],
-        # 'table_friction_1': [0.0025, 0.0075],
-        # 'table_friction_2': [0.00005, 0.00015],
-        # 'boxobject_size_0': [0.018, 0.022],
-        # 'boxobject_size_1': [0.018, 0.022],
-        # 'boxobject_size_2': [0.018, 0.022],
-        # 'boxobject_friction_0': [0.04, 1.6],
-        #'boxobject_friction_1': [0.0025, 0.0075],    # fixed this to zero
-        # 'boxobject_friction_2': [0.00005, 0.00015],
-        # 'boxobject_density_1000': [0.6, 1.4],
+        'table_size_0': [0.8, 0.8+minimal_offset],
+        'table_size_1': [0.8, 0.8+minimal_offset],
+        'table_size_2': [0.9, 0.9+minimal_offset],
     }
     
     def reset_props(self,
@@ -74,10 +64,6 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
                     door_mass = 100., 
                     knob_mass = 5.,
                     table_size_0=0.8, table_size_1=1.8, table_size_2=0.9,
-                    # table_friction_0=0., table_friction_1=0.005, table_friction_2=0.0001,
-                    # boxobject_size_0=0.020, boxobject_size_1=0.020, boxobject_size_2=0.020,
-                    # boxobject_friction_0=0.1, boxobject_friction_1=0.0, boxobject_friction_2=0.0001,
-                    # boxobject_density_1000=0.1,
                     **kwargs):
         
         self.hinge_stiffness = hinge_stiffness
@@ -92,11 +78,17 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         self.mujoco_arena.knob_mass.set('mass', str(self.knob_mass))
 
         self.table_full_size = (table_size_0, table_size_1, table_size_2)
-        # self.table_friction = (table_friction_0, table_friction_1, table_friction_2)
-        # self.boxobject_size = (boxobject_size_0, boxobject_size_1, boxobject_size_2)
-        # self.boxobject_friction = (boxobject_friction_0, boxobject_friction_1, boxobject_friction_2)
-        # self.boxobject_density = boxobject_density_1000 * 1000.
         super().reset_props(**kwargs)
+        self.params_dict.update({
+            'hinge_stiffness': hinge_stiffness,
+            'hinge_damping': hinge_damping,
+            'hinge_frictionloss': hinge_frictionloss,
+            'door_mass': door_mass,
+            'knob_mass': knob_mass,
+            'table_size_0': table_size_0,
+            'table_size_1': table_size_1,
+            'table_size_2': table_size_2,
+        })
 
     def __init__(self,
                  use_object_obs=True,
@@ -147,9 +139,6 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # for first initialization
         self.table_full_size = (0.8, 0.8, 0.8)
         self.table_friction = (0., 0.005, 0.0001)
-        # self.boxobject_size = (0.02, 0.02, 0.02)
-        # self.boxobject_friction = (0.1, 0.005, 0.0001)
-        # self.boxobject_density = 100.
 
         self.object_obs_process = object_obs_process
         self.grasp_state = False
@@ -171,7 +160,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             self.mujoco_arena.add_pos_indicator()
 
         # The panda robot has a pedestal, we want to align it with the table
-        self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
+        self.mujoco_arena.set_origin([0.3 + self.table_full_size[0] / 2, 0, 0]) # original 0.16
         
         self.mujoco_objects = None
 
@@ -293,76 +282,10 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
-
         # print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues: force tactile
-
         # print(self.sim.data.sensordata[6:]) # Gives array of all sensorvalues: touch tactile
 
-
-        # Success Reward
         self.done = self._check_success()
-        # if (success):
-        #     reward += 0.1
-            # self.done = True
-
-
-        # worldHknob = self.sim.data.get_body_xquat("knob_link")
-        # knobHee_desired = euler2quat(quat2euler([0.5, 0.5, -0.5, 0.5]))
-        # worldHee_desired = quat_mul(worldHknob, knobHee_desired)
-        # print(quat2euler(worldHee_desired), quat2euler(worldHknob), self.get_finger_ori() )
-
-
-        # # sparse completion reward
-        # if not self.reward_shaping and self._check_success():
-        #     reward = 1.0
-
-        # # use a dense reward
-        # if self.reward_shaping:
-        #     object_pos = self.sim.data.body_xpos[self.cube_body_id]
-
-        #     # max joint angles reward
-        #     joint_limits = self._joint_ranges
-        #     current_joint_pos = self._joint_positions
-
-        #     hitting_limits_reward = - int(any([(x < joint_limits[i, 0] + 0.05 or x > joint_limits[i, 1] - 0.05) for i, x in
-        #                                       enumerate(current_joint_pos)]))
-
-        #     reward += hitting_limits_reward
-
-        #     # reaching reward
-        #     gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-        #     dist = np.linalg.norm(gripper_site_pos - object_pos)
-        #     reaching_reward = -0.4 * dist
-        #     reward += reaching_reward
-
-        #     # print(gripper_site_pos, object_pos, reaching_reward)
-
-        #     # Success Reward
-        #     success = self._check_success()
-        #     if (success):
-        #         reward += 0.1
-
-        #     # goal distance reward
-        #     goal_pos = self.sim.data.site_xpos5707963267948966bject--gripper--goal
-        #     angle_g_o_g = angle_between(gripper_site_pos - object_pos,
-        #                                 goal_pos - object_pos)
-        #     if not success and angle_g_o_g < np.pi / 2.:
-        #         reward += -0.03 - 0.02 * (np.pi / 2. - angle_g_o_g)
-
-        #     # print('grippersitepos', gripper_site_pos,
-        #     #       'objpos', object_pos,
-        #     #       'jointangles', hitting_limits_reward,
-        #     #       'reaching', reaching_reward,
-        #     #       'success', success,
-        #     #       'goaldist', goal_distance_reward)
-
-        #     unstable = reward < -2.5
-
-        #     # Return all three types of rewards
-        #     reward = {"reward": reward, "reaching_distance": -10 * reaching_reward,
-        #               "goal_distance": - goal_distance_reward,
-        #               "hitting_limits_reward": hitting_limits_reward,
-        #               "unstable":unstable}
 
         return reward
     
