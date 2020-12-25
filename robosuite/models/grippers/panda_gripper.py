@@ -11,8 +11,11 @@ class PandaGripperBase(Gripper):
     Gripper for Franka's Panda (has two fingers).
     """
 
-    def __init__(self):
-        super().__init__(xml_path_completion("grippers/panda_gripper.xml"))
+    def __init__(self, path=None):
+        if path:
+            super().__init__(path)
+        else:
+            super().__init__(xml_path_completion("grippers/panda_gripper.xml"))
 
     def format_action(self, action):
         return action

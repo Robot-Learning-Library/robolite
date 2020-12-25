@@ -92,6 +92,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
 
     def __init__(self,
                  use_object_obs=True,
+                 use_tactile=False,
                  reward_shaping=True,
                  placement_initializer=None,
                  object_obs_process=True,
@@ -114,6 +115,9 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         
         # whether to use ground-truth object states
         self.use_object_obs = use_object_obs
+        
+        # whether to use tactile information
+        self.use_tactile = use_tactile
 
         # reward configuration
         self.reward_shaping = reward_shaping
@@ -229,9 +233,9 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             previously in robosuite-extra, when dense reward is used, the return value will be a dictionary. but we removed that feature.
         """
         # print contact information
-        # for i in range(self.sim.data.ncon):  # total number of contact: env.sim.data.ncon
-        #     c = self.sim.data.contact[i]
-        #     print('Contact {}: {} and {}'.format(i, self.sim.model.geom_id2name(c.geom1), self.sim.model.geom_id2name(c.geom2)))
+        for i in range(self.sim.data.ncon):  # total number of contact: env.sim.data.ncon
+            c = self.sim.data.contact[i]
+            print('Contact {}: {} and {}'.format(i, self.sim.model.geom_id2name(c.geom1), self.sim.model.geom_id2name(c.geom2)))
 
         # self.ee_ori = quat2euler(mat2quat(self._right_hand_orn))
         self.get_gripper_state()
@@ -352,7 +356,16 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
                                     di['finger_knob_dist'],
                                     di['door_hinge_angle'],
                                 ])
-            di['task_state'] = task_state
+
+        if self.use_tactile:
+            tactile_force = self.sim.data.sensordata[7::3]  # 3d force to 1d: only use the perpendicular one
+            touch_threshold = 1e-3
+            binary_tactile = np.where(np.abs(tactile_force)>touch_threshold, 1, 0)  # change to binary: if absolute value > threthold, then 1 otherwise 0
+            di['tactile'] = binary_tactile
+            task_state = np.concatenate((task_state, di['tactile']))
+        
+        di['task_state'] = task_state
+
         return di
 
     def _check_contact(self):
