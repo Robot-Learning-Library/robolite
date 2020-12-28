@@ -233,9 +233,9 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             previously in robosuite-extra, when dense reward is used, the return value will be a dictionary. but we removed that feature.
         """
         # print contact information
-        for i in range(self.sim.data.ncon):  # total number of contact: env.sim.data.ncon
-            c = self.sim.data.contact[i]
-            print('Contact {}: {} and {}'.format(i, self.sim.model.geom_id2name(c.geom1), self.sim.model.geom_id2name(c.geom2)))
+        # for i in range(self.sim.data.ncon):  # total number of contact: env.sim.data.ncon
+        #     c = self.sim.data.contact[i]
+        #     print('Contact {}: {} and {}'.format(i, self.sim.model.geom_id2name(c.geom1), self.sim.model.geom_id2name(c.geom2)))
 
         # self.ee_ori = quat2euler(mat2quat(self._right_hand_orn))
         self.get_gripper_state()
