@@ -164,7 +164,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             self.mujoco_arena.add_pos_indicator()
 
         # The panda robot has a pedestal, we want to align it with the table
-        self.mujoco_arena.set_origin([0.3 + self.table_full_size[0] / 2, 0, 0]) # original 0.16
+        self.mujoco_arena.set_origin([0.3 + self.table_full_size[0] / 2, -0.2, 0]) # original 0.16
         
         self.mujoco_objects = None
 
