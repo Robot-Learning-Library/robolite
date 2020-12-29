@@ -209,8 +209,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
 
         # reset joint positions
         # self.sim.data.qpos[self._ref_joint_pos_indexes] = [0.02085236,  0.20386552,  0.00569112, -2.60645364,  2.8973697, 3.53509316, 2.89737955]  # a initial gesture: facing downwards
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10259647, -0.77839656,  0.27246156, -2.35741103,  1.647504,  3.43102572, -0.85707793]   # a good initial gesture： facing horizontally
-
+        # self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10259647, -0.77839656,  0.27246156, -2.35741103,  1.647504,  3.43102572, -0.85707793]   # a good initial gesture： facing horizontally
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10274621, -0.50053632, -0.33733001, -2.25538603,  1.54766558,  3.19098154, -0.85708756]  # a closer pose to the door
         # open the gripper
         self.sim.data.ctrl[-2:] = np.array([0.04, -0.04])  # panda gripper finger joint range is -0.04~0.04
 
@@ -221,7 +221,6 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     def get_gripper_state(self,):
         return abs(self.sim.data.qpos[-1])  # last joint is the gripper
 
-    # reward function from sawyer_push
     def reward(self, action=None):
         """
         Reward function for the task.
@@ -236,7 +235,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # for i in range(self.sim.data.ncon):  # total number of contact: env.sim.data.ncon
         #     c = self.sim.data.contact[i]
         #     print('Contact {}: {} and {}'.format(i, self.sim.model.geom_id2name(c.geom1), self.sim.model.geom_id2name(c.geom2)))
-
+        print(self.sim.data.qpos[self._ref_joint_pos_indexes])
         # self.ee_ori = quat2euler(mat2quat(self._right_hand_orn))
         self.get_gripper_state()
         reward = 0.
@@ -303,6 +302,24 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         else:
             return False
 
+    def _get_tactile_singals(self, contact_threshold=1e-3, Binary=True):
+        """
+        Get the tactile signals from sensors. 
+
+        Params:
+            contact_threshold: the threshold of normal contact force for being contact;
+            Binary: whether using binary representation of contact info or not.
+
+        Return: 
+            An array of (30,) for two sensor arries on pads.
+
+        """
+        tactile_force = self.sim.data.sensordata[7::3]  # 3d force to 1d: only use the perpendicular one
+        if Binary:
+            binary_tactile = np.where(np.abs(tactile_force)>contact_threshold, 1, 0)  # change to binary: if absolute value > threthold, then 1 otherwise 0
+            return binary_tactile
+        else:
+            return tactile_force
 
     def step(self, action):
         return super().step(action)
@@ -358,10 +375,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
                                 ])
 
         if self.use_tactile:
-            tactile_force = self.sim.data.sensordata[7::3]  # 3d force to 1d: only use the perpendicular one
-            touch_threshold = 1e-3
-            binary_tactile = np.where(np.abs(tactile_force)>touch_threshold, 1, 0)  # change to binary: if absolute value > threthold, then 1 otherwise 0
-            di['tactile'] = binary_tactile
+            di['tactile'] = self._get_tactile_singals()
             task_state = np.concatenate((task_state, di['tactile']))
         
         di['task_state'] = task_state
