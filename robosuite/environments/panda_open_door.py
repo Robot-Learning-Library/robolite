@@ -93,6 +93,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     def __init__(self,
                  use_object_obs=True,
                  use_tactile=False,
+                 full_obs=False,
                  reward_shaping=True,
                  placement_initializer=None,
                  object_obs_process=True,
@@ -118,6 +119,9 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         
         # whether to use tactile information
         self.use_tactile = use_tactile
+
+        # whether to use full observation information
+        self.full_obs = full_obs
 
         # reward configuration
         self.reward_shaping = reward_shaping
@@ -364,15 +368,27 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             eef_xvelp_in_world = self.sim.data.get_body_xvelp("right_hand")
             di['eef_pos_in_world'] = eef_pos_in_world  # dim=3
             di['eef_vel_in_world'] = eef_xvelp_in_world  # dim=3
+            di['joint_pos_in_world'] = self.sim.data.qpos[self._ref_joint_pos_indexes]  # dim=7
+            di['joint_vel_in_world'] = self.sim.data.qvel[self._ref_joint_pos_indexes]  # dim=7
             di['finger_knob_dist'] = self.get_hand2knob_dist_vec()  # dim=3
             di['door_hinge_angle'] = [self.sim.data.get_joint_qpos("hinge0")]  # dim=1
+            if self.full_obs:
+                task_state = np.concatenate([
+                                        di['eef_pos_in_world'], 
+                                        di['eef_vel_in_world'], 
+                                        di['joint_pos_in_world'],
+                                        di['joint_vel_in_world'],
+                                        di['finger_knob_dist'],
+                                        di['door_hinge_angle'],
+                                    ])
 
-            task_state = np.concatenate([
-                                    di['eef_pos_in_world'], 
-                                    di['eef_vel_in_world'], 
-                                    di['finger_knob_dist'],
-                                    di['door_hinge_angle'],
-                                ])
+            else:
+                task_state = np.concatenate([
+                                        di['eef_pos_in_world'], 
+                                        di['eef_vel_in_world'], 
+                                        di['finger_knob_dist'],
+                                        di['door_hinge_angle'],
+                                    ])
 
         if self.use_tactile:
             di['tactile'] = self._get_tactile_singals()
