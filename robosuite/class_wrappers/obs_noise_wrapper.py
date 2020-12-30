@@ -24,6 +24,7 @@ def obs_noise_wrapper(Env, names, range_var, default):
             for k in r:
                 setattr(self, k, r[k])
             super().reset_props(**p2)
+            self.params_dict.update(r)
         
         def step(self, action):
             obs, reward, done, info = super().step(action)

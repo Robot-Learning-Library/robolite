@@ -33,6 +33,8 @@ def obs_delay_wrapper(Env, names, max_delay):
                 if k not in tkeys:
                     p2[k] = kwargs[k]
             super().reset_props(**p2)
+            self.params_dict.update(delays)
+
         
         def step(self, action):
             obs, reward, done, info = super().step(action)

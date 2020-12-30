@@ -20,6 +20,11 @@ def action_noise_wrapper(Env, add_range, add_default, mul_range, mul_default, sy
             self.action_noise_multiplicative = action_noise_multiplicative
             self.action_noise_systematic = action_noise_systematic
             super().reset_props(**kwargs)
+            self.params_dict.update({
+                'action_noise_additive': action_noise_additive,
+                'action_noise_multiplicative': action_noise_multiplicative,
+                'action_noise_systematic': action_noise_systematic,
+            })
         
         def step(self, action):
             return super().step(add_noise_to(self, action))
