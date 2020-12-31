@@ -27,21 +27,22 @@ class TableCabinetArena(Arena):
         self.table_visual = self.table_body.find("./geom[@name='table_visual']")
         self.table_top = self.table_body.find("./site[@name='table_top']")
         self.door_body = self.worldbody.find("./body[@name='frame_link']")
-        self.door_mass = self.door_body.find(("./inertial[@mass]"))
+        self.door_inertial = self.door_body.find("./inertial")  # since the mass cannot be directly set to body, and the inertial in xml does not have a name, the inertial needs to be referred here
         self.door_link = self.door_body.find(("./body[@name='door_link']"))
         self.door_hinge = self.door_link.find(("./joint[@name='hinge0']"))
         # self.door_hinge = self.door_body.find("./body[@name='door_link2']").find(("./joint[@name='base_to_door2']"))
         self.knob_link_body = self.door_link.find("./body[@name='knob_link']")
-        self.knob_mass = self.knob_link_body.find(("./inertial[@mass]"))
+        self.knob_link_inertial = self.knob_link_body.find("./inertial")
+        self.knob_geom = self.knob_link_body.find("./geom[@name='cabinet_knob']")
         assert self.floor is not None
         assert self.table_body is not None
         assert self.door_body is not None
-        assert self.door_mass is not None
+        assert self.door_inertial is not None
         assert self.door_link is not None
         assert self.door_hinge is not None
         assert self.knob_link_body is not None
-        assert self.knob_mass is not None
-
+        assert self.knob_link_inertial is not None
+        assert self.knob_geom is not None
 
         self.configure_location()
 

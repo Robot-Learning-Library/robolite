@@ -47,10 +47,11 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     minimal_offset = 1e-5
     parameters_spec = {
         **PandaEnv.parameters_spec,
-        'hinge_stiffness': [0.1, 0.3],
+        'knob_friction': [0.99, 1], # the friction of gripper pads are 1, setting knob friction is easier
+        'hinge_stiffness': [0.1, 5],  # the stiffness value affects significantly on door behaviour, general range in 0-100
         'hinge_damping': [0.1, 0.3],
         'hinge_frictionloss': [0., 1.,],
-        'door_mass': [50, 150],
+        'door_mass': [50, 150],  # the door mass does not affect too much in this task
         'knob_mass': [2, 10],
         'table_size_0': [0.8, 0.8+minimal_offset],
         'table_size_1': [0.8, 0.8+minimal_offset],
@@ -58,6 +59,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     }
     
     def reset_props(self,
+                    knob_friction = 0.8,
                     hinge_stiffness = 0.1,
                     hinge_damping = 0.1,
                     hinge_frictionloss = 0.1,
@@ -66,20 +68,17 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
                     table_size_0=0.8, table_size_1=1.8, table_size_2=0.9,
                     **kwargs):
         
+        self.konb_friction = knob_friction
         self.hinge_stiffness = hinge_stiffness
-        self.mujoco_arena.door_hinge.set('stiffness', str(self.hinge_stiffness))
         self.hinge_damping =  hinge_damping
-        self.mujoco_arena.door_hinge.set('damping', str(self.hinge_damping))
         self.hinge_frictionloss = hinge_frictionloss
-        self.mujoco_arena.door_hinge.set('frictionloss', str(self.hinge_frictionloss))
         self.door_mass = door_mass
-        self.mujoco_arena.door_mass.set('mass', str(self.door_mass))
         self.knob_mass = knob_mass
-        self.mujoco_arena.knob_mass.set('mass', str(self.knob_mass))
 
         self.table_full_size = (table_size_0, table_size_1, table_size_2)
         super().reset_props(**kwargs)
         self.params_dict.update({
+            'knob_friction': knob_friction,
             'hinge_stiffness': hinge_stiffness,
             'hinge_damping': hinge_damping,
             'hinge_frictionloss': hinge_frictionloss,
@@ -144,9 +143,15 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             )
             
 
-        # for first initialization
+        # for first initialization, before reset parameters and load model, so the values do not matter
         self.table_full_size = (0.8, 0.8, 0.8)
         self.table_friction = (0., 0.005, 0.0001)
+        self.konb_friction = 0.8
+        self.hinge_stiffness = 0.1
+        self.hinge_damping =  0.1
+        self.hinge_frictionloss = 0.1
+        self.door_mass = 100.
+        self.knob_mass = 5.
 
         self.object_obs_process = object_obs_process
         self.grasp_state = False
@@ -182,6 +187,13 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         )
         if self.mujoco_objects is not None:
             self.model.place_objects()
+
+        self.mujoco_arena.knob_geom.set('friction', str(self.konb_friction)+' 0 0')  # only set the sliding friction (the first dim)
+        self.mujoco_arena.door_hinge.set('stiffness', str(self.hinge_stiffness))
+        self.mujoco_arena.door_hinge.set('damping', str(self.hinge_damping))
+        self.mujoco_arena.door_hinge.set('frictionloss', str(self.hinge_frictionloss))
+        self.mujoco_arena.door_inertial.set('mass', str(self.door_mass))
+        self.mujoco_arena.knob_link_inertial.set('mass', str(self.knob_mass))
 
     def _get_reference(self):
         """
