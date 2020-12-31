@@ -188,6 +188,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         if self.mujoco_objects is not None:
             self.model.place_objects()
 
+        # set the chosen parameter values
+        # Note: set values here rather than in reset_props() since the model is reloaded after reset_props()
         self.mujoco_arena.knob_geom.set('friction', str(self.konb_friction)+' 0 0')  # only set the sliding friction (the first dim)
         self.mujoco_arena.door_hinge.set('stiffness', str(self.hinge_stiffness))
         self.mujoco_arena.door_hinge.set('damping', str(self.hinge_damping))
