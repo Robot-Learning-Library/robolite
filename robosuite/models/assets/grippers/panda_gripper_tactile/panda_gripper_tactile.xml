@@ -136,7 +136,7 @@
 
                 <body name="finger_joint1_tip" pos="0.0 0.008 0.0685">
                     <inertial pos="0 0 0" quat="0 0 0 1" mass="0.01" diaginertia="0.01 0.01 0.01" />
-                    <geom size="0.009 0.0034 0.0175" pos="0.0 -0.0048 -0.015" rgba="0.5 1. 0.6 1" quat="0 0 0 1" type="box" solref="0.01 0.5" friction = "0.001 0 0" conaffinity="1" contype="1" name="finger1_tip_collision"/>
+                    <geom size="0.009 0.0034 0.0175" pos="0.0 -0.0048 -0.015" rgba="0.5 1. 0.6 1" quat="0 0 0 1" type="box" solref="0.01 0.5" friction = "1 0 0" conaffinity="1" contype="1" name="finger1_tip_collision"/>
 
                 </body>
             </body>
@@ -242,7 +242,7 @@
 
                 <body name="finger_joint2_tip" pos="0.00 0.008 0.0685">
                     <inertial pos="0 0 0" quat="0 0 0 1" mass="0.01" diaginertia="0.01 0.01 0.01" />
-                    <geom size="0.009 0.0034 0.0175" pos="0 -0.011 -0.015" rgba="1. 0.5 0.6 1" quat="0 0 0 1" type="box" solref="0.01 0.5" friction = "0.001 0 0" conaffinity="1" contype="1" name="finger2_tip_collision"/>
+                    <geom size="0.009 0.0034 0.0175" pos="0 -0.011 -0.015" rgba="1. 0.5 0.6 1" quat="0 0 0 1" type="box" solref="0.01 0.5" friction = "1 0 0" conaffinity="1" contype="1" name="finger2_tip_collision"/>
 
                 </body>
             </body>

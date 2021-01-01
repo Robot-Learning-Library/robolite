@@ -47,7 +47,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     minimal_offset = 1e-5
     parameters_spec = {
         **PandaEnv.parameters_spec,
-        'knob_friction': [0.99, 1], # the friction of gripper pads are 1, setting knob friction is easier
+        'knob_friction': [0.2, 1.], # the friction of gripper pads are 1, setting knob friction is easier
         'hinge_stiffness': [0.1, 5],  # the stiffness value affects significantly on door behaviour, general range in 0-100
         'hinge_damping': [0.1, 0.3],
         'hinge_frictionloss': [0., 1.,],
@@ -105,7 +105,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
 
             reward_shaping (bool): if True, use dense rewards.
 
-            placement_initializer (ObjectPositionSampler instance): if provided, will
+            placement_initializer (ObjectPositionSampler instance): 
+f provided, will
                 be used to place objects on every reset, else a UniformRandomSampler
                 is used by default.
 
@@ -150,6 +151,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         self.hinge_stiffness = 0.1
         self.hinge_damping =  0.1
         self.hinge_frictionloss = 0.1
+
         self.door_mass = 100.
         self.knob_mass = 5.
 
@@ -196,6 +198,11 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         self.mujoco_arena.door_hinge.set('frictionloss', str(self.hinge_frictionloss))
         self.mujoco_arena.door_inertial.set('mass', str(self.door_mass))
         self.mujoco_arena.knob_link_inertial.set('mass', str(self.knob_mass))
+
+        # set robot grippers friction to be very small, so that the knob friction matters
+        self.robot_hand = self.mujoco_robot.root.find(".//body[@name='{}']".format("right_hand")).find("./body[@name='right_gripper']")
+        self.robot_hand.find("./body[@name='leftfinger']").find("./body[@name='finger_joint1_tip']").find("./geom[@name='finger1_tip_collision']").set('friction', '0.001 0 0')
+        self.robot_hand.find("./body[@name='rightfinger']").find("./body[@name='finger_joint2_tip']").find("./geom[@name='finger2_tip_collision']").set('friction', '0.001 0 0')
 
     def _get_reference(self):
         """
