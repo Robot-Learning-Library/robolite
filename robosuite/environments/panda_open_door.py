@@ -47,8 +47,10 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     minimal_offset = 1e-5
     parameters_spec = {
         **PandaEnv.parameters_spec,
-        'knob_friction': [0.2, 1.], # the friction of gripper pads are 1, setting knob friction is easier
-        'hinge_stiffness': [0.1, 5],  # the stiffness value affects significantly on door behaviour, general range in 0-100
+        # 'knob_friction': [0.2, 1.]
+        'knob_friction': [0.5, 1.], # the friction of gripper pads are 1, setting knob friction is easier
+        # 'hinge_stiffness': [0.1, 5]
+        'hinge_stiffness': [0.1, 3],  # the stiffness value affects significantly on door behaviour, general range in 0-100
         'hinge_damping': [0.1, 0.3],
         'hinge_frictionloss': [0., 1.,],
         'door_mass': [50, 150],  # the door mass does not affect too much in this task

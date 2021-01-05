@@ -332,18 +332,18 @@ class PandaEnv(MujocoEnv):
         ctrl_range = self.sim.model.actuator_ctrlrange
         bias = 0.5 * (ctrl_range[:, 1] + ctrl_range[:, 0])
         weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
-        bias[-2:] = 2*[0.]  # modified: the bias for gripper shoule be 0.
+        bias[-2:] = 2*[0.]  # modified: the bias for gripper shoule be 0. when using velocity control, zero action corresponds to zero velocity
         applied_action = bias + weight * action
 
         applied_action = action  # do not rescale to keep the input action
 
         # Two gripper control modes:
         # 1. Control the gripper with action directly being position
-        # self.sim.data.ctrl[:] = applied_action
+        # self.sim.data.ctrl[:] = applied_action  # comment the bias[-2:]=2*[0.] above to set zero action correspond to half of position range.
 
         # 2. Control the gripper with action being position change of fingers
         self.sim.data.ctrl[:-2] = applied_action[:-2]
-        self.sim.data.ctrl[-2:] += applied_action[-2:]
+        self.sim.data.ctrl[-2:] += applied_action[-2:]  # velocity range for gripper equals to weight, i.e. half of position range for each gripper finger
 
 
         # gravity compensation
