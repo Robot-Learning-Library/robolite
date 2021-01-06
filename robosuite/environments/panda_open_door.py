@@ -47,10 +47,10 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     minimal_offset = 1e-5
     parameters_spec = {
         **PandaEnv.parameters_spec,
-        # 'knob_friction': [0.2, 1.]
-        'knob_friction': [0.5, 1.], # the friction of gripper pads are 1, setting knob friction is easier
-        # 'hinge_stiffness': [0.1, 5]
-        'hinge_stiffness': [0.1, 3],  # the stiffness value affects significantly on door behaviour, general range in 0-100
+        'knob_friction': [0.2, 1.],
+        # 'knob_friction': [0.5, 1.], # the friction of gripper pads are 1, setting knob friction is easier
+        'hinge_stiffness': [0.1, 5],
+        # 'hinge_stiffness': [0.1, 3],  # the stiffness value affects significantly on door behaviour, general range in 0-100
         'hinge_damping': [0.1, 0.3],
         'hinge_frictionloss': [0., 1.,],
         'door_mass': [50, 150],  # the door mass does not affect too much in this task
@@ -308,7 +308,14 @@ f provided, will
             reward_grasp += 0.1
         else:
             self.grasp_state = False
-        reward = reward_door_open + 0.1*(reward_dist + reward_ori) + reward_grasp  # A summary of reward values
+
+        # an additional reward for providing more tactile signals
+        if self.use_tactile and self.door_open_angle > 0.01:
+            reward_tactile = np.sum(self._get_tactile_singals()) 
+            # print('tac: ', reward_tactile)
+        else:
+            reward_tactile = 0.
+        reward = reward_door_open + 0.1*(reward_dist + reward_ori) + reward_grasp + 0.05*reward_tactile  # A summary of reward values
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
