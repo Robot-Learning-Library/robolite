@@ -315,7 +315,8 @@ f provided, will
             # print('tac: ', reward_tactile)
         else:
             reward_tactile = 0.
-        reward = reward_door_open + 0.1*(reward_dist + reward_ori) + reward_grasp + 0.05*reward_tactile  # A summary of reward values
+        reward = reward_door_open + 0.1*(reward_dist + reward_ori) + reward_grasp + 0.005*reward_tactile  # A summary of reward values
+        print(0.05*reward_tactile,  reward)
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
