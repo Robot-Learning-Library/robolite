@@ -302,7 +302,7 @@ class PandaEnv(MujocoEnv):
             index = self._ref_indicator_pos_low
             self.sim.data.qpos[index : index + 3] = pos
 
-    def _pre_action(self, action):
+    def _pre_action(self, action, rescale=False):
         """
         Overrides the superclass method to actuate the robot with the
         passed joint velocities and gripper control.
@@ -328,14 +328,17 @@ class PandaEnv(MujocoEnv):
             gripper_action_actual = self.gripper.format_action(gripper_action_in)
             action = np.concatenate([arm_action, gripper_action_actual])
 
-        # rescale normalized action to control ranges
-        ctrl_range = self.sim.model.actuator_ctrlrange
-        bias = 0.5 * (ctrl_range[:, 1] + ctrl_range[:, 0])
-        weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
-        bias[-2:] = 2*[0.]  # modified: the bias for gripper shoule be 0. when using velocity control, zero action corresponds to zero velocity
-        applied_action = bias + weight * action
+        if rescale:
+            # for sim-only usage: rescale normalized action to control ranges
+            ctrl_range = self.sim.model.actuator_ctrlrange
+            bias = 0.5 * (ctrl_range[:, 1] + ctrl_range[:, 0])
+            weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
+            bias[-2:] = 2*[0.]  # modified: the bias for gripper shoule be 0. when using velocity control, zero action corresponds to zero velocity
+            applied_action = bias + weight * action
 
-        applied_action = action  # do not rescale to keep the input action
+        else:
+            # for sim2real usage: do not rescale to keep the input action, this ensures the actions from policy to be straightforwardly applied in reality
+            applied_action = action  
 
         # Two gripper control modes:
         # 1. Control the gripper with action directly being position

@@ -56,7 +56,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         'door_mass': [50, 150],  # the door mass does not affect too much in this task
         'knob_mass': [2, 10],
         'table_size_0': [0.8, 0.8+minimal_offset],
-        'table_size_1': [0.8, 0.8+minimal_offset],
+        'table_size_1': [1.8, 1.8+minimal_offset],
         'table_size_2': [0.9, 0.9+minimal_offset],
     }
     
@@ -398,7 +398,8 @@ f provided, will
             di['eef_vel_in_world'] = eef_xvelp_in_world  # dim=3
             di['joint_pos_in_world'] = self.sim.data.qpos[self._ref_joint_pos_indexes]  # dim=7
             di['joint_vel_in_world'] = self.sim.data.qvel[self._ref_joint_pos_indexes]  # dim=7
-            di['finger_knob_dist'] = self.get_hand2knob_dist_vec()  # dim=3
+            # di['finger_knob_dist'] = self.get_hand2knob_dist_vec()  # dim=3, not used in reality due to the uncertain position of hand_visual
+            di['knob_pos_in_world'] = self.get_knob_pos() # dim=3, position of center of the knob
             di['door_hinge_angle'] = [self.sim.data.get_joint_qpos("hinge0")]  # dim=1
             if self.full_obs:
                 task_state = np.concatenate([
@@ -406,7 +407,8 @@ f provided, will
                                         di['eef_vel_in_world'], 
                                         di['joint_pos_in_world'],
                                         di['joint_vel_in_world'],
-                                        di['finger_knob_dist'],
+                                        # di['finger_knob_dist'],
+                                        di['knob_pos_in_world'],
                                         di['door_hinge_angle'],
                                     ])
 
@@ -414,7 +416,8 @@ f provided, will
                 task_state = np.concatenate([
                                         di['eef_pos_in_world'], 
                                         di['eef_vel_in_world'], 
-                                        di['finger_knob_dist'],
+                                        # di['finger_knob_dist'],
+                                        di['knob_pos_in_world'],
                                         di['door_hinge_angle'],
                                     ])
 
