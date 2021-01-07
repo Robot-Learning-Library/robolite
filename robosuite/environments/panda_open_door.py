@@ -177,7 +177,7 @@ f provided, will
             self.mujoco_arena.add_pos_indicator()
 
         # The panda robot has a pedestal, we want to align it with the table
-        self.mujoco_arena.set_origin([0.3 + self.table_full_size[0] / 2, -0.2, 0]) # original 0.16
+        self.mujoco_arena.set_origin([-0.9, 0.5, 0]) # the vector is the relative distance from tabel top center to the robot base
         
         self.mujoco_objects = None
 
@@ -235,9 +235,8 @@ f provided, will
             self.model.place_objects()
 
         # reset joint positions
-        # self.sim.data.qpos[self._ref_joint_pos_indexes] = [0.02085236,  0.20386552,  0.00569112, -2.60645364,  2.8973697, 3.53509316, 2.89737955]  # a initial gesture: facing downwards
-        # self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10259647, -0.77839656,  0.27246156, -2.35741103,  1.647504,  3.43102572, -0.85707793]   # a good initial gesture： facing horizontally
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = [ 0.10274621, -0.50053632, -0.33733001, -2.25538603,  1.54766558,  3.19098154, -0.85708756]  # a closer pose to the door
+        self.sim.data.qpos[self._ref_joint_pos_indexes] =  [-2.38552629,  0.11408278, -0.43481802, -1.64875619,  1.77681087,  3.37056892, -0.8571096 ]
+
         # open the gripper
         self.sim.data.ctrl[-2:] = np.array([0.04, -0.04])  # panda gripper finger joint range is -0.04~0.04
 
@@ -262,7 +261,6 @@ f provided, will
         # for i in range(self.sim.data.ncon):  # total number of contact: env.sim.data.ncon
         #     c = self.sim.data.contact[i]
         #     print('Contact {}: {} and {}'.format(i, self.sim.model.geom_id2name(c.geom1), self.sim.model.geom_id2name(c.geom2)))
-        
         # self.ee_ori = quat2euler(mat2quat(self._right_hand_orn))
         self.get_gripper_state()
         reward = 0.
