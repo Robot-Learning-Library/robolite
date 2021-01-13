@@ -270,8 +270,12 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             joint_limits = self._joint_ranges
             current_joint_pos = self._joint_positions
 
-            hitting_limits_reward = - int(any([(x < joint_limits[i, 0] + 0.05 or x > joint_limits[i, 1] - 0.05) for i, x in
-                                              enumerate(current_joint_pos)]))
+            # hitting_limits_reward = - int(any([(x < joint_limits[i, 0] + 0.05 or x > joint_limits[i, 1] - 0.05) for i, x in
+            #                                   enumerate(current_joint_pos)]))
+
+            hitting_limits_reward = 0.
+            # if hitting_limits_reward:
+            #     print('joint limit reward: ', hitting_limits_reward)
 
             reward += hitting_limits_reward
 
@@ -280,8 +284,6 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             dist = np.linalg.norm(gripper_site_pos - object_pos)
             reaching_reward = -0.4 * dist
             reward += reaching_reward
-
-            # print(gripper_site_pos, object_pos, reaching_reward)
 
             # Success Reward
             success = self._check_success()
@@ -296,10 +298,10 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             reward += goal_distance_reward
 
             # punish when there is a line of object--gripper--goal
-            angle_g_o_g = angle_between(gripper_site_pos - object_pos,
-                                        goal_pos - object_pos)
-            if not success and angle_g_o_g < np.pi / 2.:
-                reward += -0.03 - 0.02 * (np.pi / 2. - angle_g_o_g)
+            # angle_g_o_g = angle_between(gripper_site_pos - object_pos,
+            #                             goal_pos - object_pos)
+            # if not success and angle_g_o_g < np.pi / 2.:
+            #     reward += -0.03 - 0.02 * (np.pi / 2. - angle_g_o_g)
 
             # print('grippersitepos', gripper_site_pos,
             #       'objpos', object_pos,
