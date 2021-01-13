@@ -401,7 +401,7 @@ f provided, will
             di['knob_pos_in_world'] = self.get_knob_pos() # dim=3, position of center of the knob
             di['knob_pos_to_eef'] = di['knob_pos_in_world'] - di['eef_pos_in_world']   # dim=3, position of center of the knob relative to eef
             di['door_hinge_angle'] = [self.sim.data.get_joint_qpos("hinge0")]  # dim=1
-            di['gripper_width'] = self.get_gripper_state()  # dim=1
+            di['gripper_width'] = [self.get_gripper_state()]  # dim=1
             if self.full_obs:
                 task_state = np.concatenate([
                                         di['eef_pos_in_world'], 
