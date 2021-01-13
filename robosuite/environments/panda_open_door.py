@@ -49,7 +49,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         **PandaEnv.parameters_spec,
         'knob_friction': [0.2, 1.],
         # 'knob_friction': [0.5, 1.], # the friction of gripper pads are 1, setting knob friction is easier
-        'hinge_stiffness': [0.1, 5],
+        'hinge_stiffness': [0.1, 3.],
         # 'hinge_stiffness': [0.1, 3],  # the stiffness value affects significantly on door behaviour, general range in 0-100
         'hinge_damping': [0.1, 0.3],
         'hinge_frictionloss': [0., 1.,],
@@ -235,8 +235,8 @@ f provided, will
             self.model.place_objects()
 
         # reset joint positions
-        self.sim.data.qpos[self._ref_joint_pos_indexes] =  [-2.38552629,  0.11408278, -0.43481802, -1.64875619,  1.77681087,  3.37056892, -0.8571096 ]
-        # self.sim.data.qpos[self._ref_joint_pos_indexes] =  [-2.73830829,  0.23346824, -0.09714798, -1.63363,  1.66059114,  3.52977957, -0.83828194] # a closer position
+        # self.sim.data.qpos[self._ref_joint_pos_indexes] =  [-2.38552629,  0.11408278, -0.43481802, -1.64875619,  1.77681087,  3.37056892, -0.8571096 ]
+        self.sim.data.qpos[self._ref_joint_pos_indexes] =  [-2.73830829,  0.23346824, -0.09714798, -1.63363,  1.66059114,  3.52977957, -0.83828194] # a closer position
         # open the gripper
         self.sim.data.ctrl[-2:] = np.array([0.04, -0.04])  # panda gripper finger joint range is -0.04~0.04
 
@@ -262,7 +262,6 @@ f provided, will
         #     c = self.sim.data.contact[i]
         #     print('Contact {}: {} and {}'.format(i, self.sim.model.geom_id2name(c.geom1), self.sim.model.geom_id2name(c.geom2)))
         # self.ee_ori = quat2euler(mat2quat(self._right_hand_orn))
-        self.get_gripper_state()
         reward = 0.
         self.door_open_angle = abs(self.sim.data.get_joint_qpos("hinge0"))
 
@@ -277,7 +276,7 @@ f provided, will
 
         reward_dist = 0.
         reward_ori = 0.
-        if self.door_open_angle < 0.03:
+        if self.door_open_angle < 0.02:
             # A distance reward: minimize the distance between the gripper and door konb when the door is almost closed 
             reward_dist = -np.linalg.norm(self.get_hand2knob_dist_vec())
 
@@ -285,7 +284,7 @@ f provided, will
             fingerEulerDesired =  [np.pi, 0, np.pi/2]  # horizontal gesture for gripper
             finger_ori = self.get_finger_ori()
             ori_diff = sin_cos_encoding(fingerEulerDesired) - sin_cos_encoding(finger_ori)  # use sin_cos_encoding to avoid value jump in 2PI measure
-            reward_ori = -np.linalg.norm(ori_diff) * 0.04
+            reward_ori = -np.linalg.norm(ori_diff) * 0.1
 
         # grasping reward
         touch_left_finger = False
@@ -308,7 +307,7 @@ f provided, will
             self.grasp_state = False
 
         # an additional reward for providing more tactile signals
-        if self.use_tactile and self.door_open_angle > 0.01:
+        if self.use_tactile and self.door_open_angle > 0.02 and self.get_gripper_state()>0.005:  # only when door is open and gripper is not fully closed (contact with itself)
             reward_tactile = np.sum(self._get_tactile_singals()) 
             # print('tac: ', reward_tactile)
         else:
@@ -402,12 +401,14 @@ f provided, will
             di['knob_pos_in_world'] = self.get_knob_pos() # dim=3, position of center of the knob
             di['knob_pos_to_eef'] = di['knob_pos_in_world'] - di['eef_pos_in_world']   # dim=3, position of center of the knob relative to eef
             di['door_hinge_angle'] = [self.sim.data.get_joint_qpos("hinge0")]  # dim=1
+            di['gipper_width'] = self.get_gripper_state()  # dim=1
             if self.full_obs:
                 task_state = np.concatenate([
                                         di['eef_pos_in_world'], 
                                         di['eef_vel_in_world'], 
                                         di['joint_pos_in_world'],
                                         di['joint_vel_in_world'],
+                                        di['gripper_width'],
                                         # di['finger_knob_dist'],
                                         # di['knob_pos_in_world'],
                                         di['knob_pos_to_eef'],
@@ -418,6 +419,7 @@ f provided, will
                 task_state = np.concatenate([
                                         di['eef_pos_in_world'], 
                                         di['eef_vel_in_world'], 
+                                        di['gripper_width'],
                                         # di['finger_knob_dist'],
                                         # di['knob_pos_in_world'],
                                         di['knob_pos_to_eef'],
