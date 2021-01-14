@@ -172,16 +172,19 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=1., po
             action = np.clip(action, np.ones(ik_dof) * -1, np.ones(ik_dof) * 1) * max_action   # action range: [-max_action, max_action]
 
             # ee_curr = self.get_geom_posquat("hand_visual")  # does not give a fully correct control: correct for position and x- and y-rotation, wrong for z-rotation
-            ee_curr = np.concatenate([self._right_hand_pos, mat2quat(self._right_hand_orn)])  # gives correct control for both opsition and orientation
+            ee_curr = np.concatenate([self._right_hand_pos, mat2quat(self._right_hand_orn)])  # gives correct control for both opsition and orientation        
 
             if fix_z is not None:
                 z_error = fix_z - ee_curr[2]
                 action = np.concatenate([action, [5.*z_error]])  # add action to z-axis to construct a complete position action vector since input is of 2 dims: set a large proportional gain (5.) to quickly move to fix_z
 
             if rotation is False:
-                action = np.concatenate([action, [0.,0.,0.]])  # add zero rotations to three axis to construct a complete action vector 
-            ee_tget = action + np.concatenate([ee_curr[:-4], quat2euler(ee_curr[-4:])])    # change last 3 dims for orientation from quaternion to euler
-            ee_tget = np.concatenate([ee_tget[:-3], euler2quat(ee_tget[-3:])])  # change last 3 dims for orientation from euler to quaternion
+                ee_tget = np.concatenate([action+ee_curr[:-4], euler2quat([-np.pi, 0., 0.])])  # target orientation: gripper facing downwards
+
+            else: # with rotation control/action
+                current_euler = quat2euler(ee_curr[-4:])  # change last 3 dims for orientation from quaternion to euler
+                ee_tget = action + np.concatenate([ee_curr[:-4], current_euler])
+                ee_tget = np.concatenate([ee_tget[:-3], euler2quat(ee_tget[-3:])])  # change last 3 dims for orientation from euler to quaternion
 
             ee_jac = self.jac_geom("hand_visual")  # get the jacobian w.r.t. a geom with its name
             # vel = np.hstack(((ee_tget[:3] - ee_curr[:3]) /5,    # divided by 5 to generate small action, but will affect the velocity in simulation

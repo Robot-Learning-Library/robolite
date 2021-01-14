@@ -256,6 +256,9 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             reward (float): the reward
             previously in robosuite-extra, when dense reward is used, the return value will be a dictionary. but we removed that feature.
         """
+        reach_multi = 0.4
+        goal_multi = 1.
+
         reward = 0.
 
         # sparse completion reward
@@ -282,8 +285,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             # reaching reward
             gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
             dist = np.linalg.norm(gripper_site_pos - object_pos)
-            reaching_reward = -0.4 * dist
-            reward += reaching_reward
+            reaching_reward = 1-np.tanh(10.*dist)
+            reward += reach_multi * reaching_reward
 
             # Success Reward
             success = self._check_success()
@@ -294,8 +297,8 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
             goal_pos = self.sim.data.site_xpos[self.goal_site_id]
 
             dist = np.linalg.norm(goal_pos - object_pos)
-            goal_distance_reward = -dist
-            reward += goal_distance_reward
+            goal_distance_reward = 1-np.tanh(10.*dist)
+            reward += goal_multi * goal_distance_reward
 
             # punish when there is a line of object--gripper--goal
             # angle_g_o_g = angle_between(gripper_site_pos - object_pos,
@@ -336,7 +339,14 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
     def step(self, action):
         """ explicitly shut the gripper """
         joined_action = np.append(action, [1.])
-        return super().step(joined_action)
+        obs, reward, done, info = super().step(joined_action)
+        # keep the gripper facing downwards (sometimes it's not due to the imperfect IK)
+        ori_threshold = 0.05
+        print(np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([-np.pi, 0., 0.])), np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([np.pi, 0., 0.])))
+        if np.min([np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([-np.pi, 0., 0.])),
+            np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([np.pi, 0., 0.]))]) > ori_threshold:
+            done = True
+        return obs, reward, done, info
 
     def world2eef(self, world):
         return self.world_rot_in_eef.dot(world)

@@ -262,11 +262,18 @@ f provided, will
         #     c = self.sim.data.contact[i]
         #     print('Contact {}: {} and {}'.format(i, self.sim.model.geom_id2name(c.geom1), self.sim.model.geom_id2name(c.geom2)))
         # self.ee_ori = quat2euler(mat2quat(self._right_hand_orn))
+
+        open_multi = 1.
+        dis_multi = 0.1
+        ori_multi = 0.1
+        grasp_multi = 1.
+        tac_multi = 0.005
+
         reward = 0.
         self.door_open_angle = abs(self.sim.data.get_joint_qpos("hinge0"))
 
+        # door open angle reward
         reward_door_open = 0.
-
         # If the gripper is nearly closed, ignore the reward for door opening; fully closed is about 0.001
         # However, the self.get_gripper_state() can be inaccurate sometimes, so deprecate this approach.
         # if self.get_gripper_state() > 0.002:  
@@ -274,6 +281,7 @@ f provided, will
         if self.grasp_state:  # only count for the door opening reward when the knob is grasped by the robot
             reward_door_open += self.door_open_angle
 
+        # distance and orientation rewards for reaching
         reward_dist = 0.
         reward_ori = 0.
         if self.door_open_angle < 0.02:
@@ -309,10 +317,11 @@ f provided, will
         # an additional reward for providing more tactile signals
         if self.use_tactile and self.door_open_angle > 0.02 and self.get_gripper_state()>0.005:  # only when door is open and gripper is not fully closed (contact with itself)
             reward_tactile = np.sum(self._get_tactile_singals()) 
-            # print('tac: ', reward_tactile)
         else:
             reward_tactile = 0.
-        reward = reward_door_open + 0.1*(reward_dist + reward_ori) + reward_grasp + 0.005*reward_tactile  # A summary of reward values
+
+        # a summary of reward values
+        reward = open_multi*reward_door_open + dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile  
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
