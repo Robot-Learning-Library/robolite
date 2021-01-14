@@ -289,7 +289,7 @@ f provided, will
             reward_dist = -np.linalg.norm(self.get_hand2knob_dist_vec())
 
             # An orientation reward: make the orientation of gripper horizontal (better for knob grasping) when the door is almost closed 
-            fingerEulerDesired =  [np.pi, 0, np.pi/2]  # horizontal gesture for gripper
+            fingerEulerDesired =  [0, 0, np.pi/2]  # horizontal gesture for gripper
             finger_ori = self.get_finger_ori()
             ori_diff = sin_cos_encoding(fingerEulerDesired) - sin_cos_encoding(finger_ori)  # use sin_cos_encoding to avoid value jump in 2PI measure
             reward_ori = -np.linalg.norm(ori_diff) * 0.1
