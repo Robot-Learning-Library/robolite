@@ -340,9 +340,9 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         """ explicitly shut the gripper """
         joined_action = np.append(action, [1.])
         obs, reward, done, info = super().step(joined_action)
+        
         # keep the gripper facing downwards (sometimes it's not due to the imperfect IK)
         ori_threshold = 0.05
-        print(np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([-np.pi, 0., 0.])), np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([np.pi, 0., 0.])))
         if np.min([np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([-np.pi, 0., 0.])),
             np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([np.pi, 0., 0.]))]) > ori_threshold:
             done = True
