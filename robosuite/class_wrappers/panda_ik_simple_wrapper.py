@@ -164,8 +164,10 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=1., po
                 which remains the same (no need for IK transformation).
 
             """
-
-            assert(action_all.shape == (self.dof, ))
+            try:
+                assert(action_all.shape == (self.dof, ))
+            except:
+                print('Action Shape Error')
             action = action_all[:ik_dof]  # the first 2 or 3 dims are position, and the last 3 dims are orientation (euler)
             action_other = action_all[ik_dof:]  # gripper control, etc
 
