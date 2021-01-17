@@ -266,9 +266,9 @@ f provided, will
 
         open_multi = 1.
         dis_multi = 0.1
-        ori_multi = 0.1
+        ori_multi = 1.
         grasp_multi = 1.
-        tac_multi = 0.005
+        tac_multi = 0.05
 
         reward = 0.
         self.door_open_angle = abs(self.sim.data.get_joint_qpos("hinge0"))
