@@ -414,10 +414,10 @@ f provided, will
             di['gripper_width'] = [self.get_gripper_state()]  # dim=1
             if self.full_obs:
                 task_state = np.concatenate([
-                                        di['eef_pos_in_world'], 
-                                        di['eef_vel_in_world'], 
+                                        # di['eef_pos_in_world'], 
+                                        # di['eef_vel_in_world'], 
                                         di['joint_pos_in_world'],
-                                        di['joint_vel_in_world'],
+                                        # di['joint_vel_in_world'],
                                         di['gripper_width'],
                                         # di['finger_knob_dist'],
                                         # di['knob_pos_in_world'],
