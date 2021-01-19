@@ -412,29 +412,34 @@ f provided, will
             di['knob_pos_to_eef'] = di['knob_pos_in_world'] - di['eef_pos_in_world']   # dim=3, position of center of the knob relative to eef
             di['door_hinge_angle'] = [self.sim.data.get_joint_qpos("hinge0")]  # dim=1
             di['gripper_width'] = [self.get_gripper_state()]  # dim=1
-            if self.full_obs:
+            if self.full_obs: # dim=25
                 task_state = np.concatenate([
-                                        # di['eef_pos_in_world'], 
-                                        # di['eef_vel_in_world'], 
+                                        di['eef_pos_in_world'], 
+                                        di['eef_vel_in_world'], 
                                         di['joint_pos_in_world'],
-                                        # di['joint_vel_in_world'],
+                                        di['joint_vel_in_world'],
                                         di['gripper_width'],
                                         # di['finger_knob_dist'],
-                                        # di['knob_pos_in_world'],
+                                        # di['knob_pos_in_world'],  
                                         di['knob_pos_to_eef'],
                                         di['door_hinge_angle'],
                                     ])
 
             else:
-                task_state = np.concatenate([
-                                        di['eef_pos_in_world'], 
-                                        di['eef_vel_in_world'], 
+                # FK, dim=12
+                task_state = np.concatenate([ 
+                                        di['joint_pos_in_world'],
                                         di['gripper_width'],
-                                        # di['finger_knob_dist'],
-                                        # di['knob_pos_in_world'],
                                         di['knob_pos_to_eef'],
                                         di['door_hinge_angle'],
                                     ])
+                # IK, dim=8
+                # task_state = np.concatenate([ 
+                #                         di['eef_pos_in_world'],
+                #                         di['gripper_width'],
+                #                         di['knob_pos_to_eef'],
+                #                         di['door_hinge_angle'],
+                #                     ])
 
         if self.use_tactile:
             di['tactile'] = self._get_tactile_singals()
