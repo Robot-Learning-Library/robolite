@@ -348,7 +348,6 @@ class PandaEnv(MujocoEnv):
         self.sim.data.ctrl[:-2] = applied_action[:-2]
         self.sim.data.ctrl[-2:] += applied_action[-2:]  # velocity range for gripper equals to weight, i.e. half of position range for each gripper finger
 
-
         # gravity compensation
         self.sim.data.qfrc_applied[
             self._ref_joint_vel_indexes

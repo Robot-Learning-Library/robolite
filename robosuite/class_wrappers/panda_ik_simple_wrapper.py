@@ -94,7 +94,7 @@ def conj_quat(quat):
     functions.mju_negQuat(res, quat)
     return res
 
-def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=1., pose_mat=None, limit_range=None):
+def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=1., pose_mat=None, limit_range=None):  # TODO limit_range
     ik_dof = 2 if fix_z is not None else 3
     if rotation:   # if allowing rotation control for EE, add 3 dims of euler for EE orientation
         ik_dof += 3
@@ -196,7 +196,6 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=1., po
             qvel = np.matmul(np.linalg.pinv(ee_jac), vel.transpose())
             
             final_action = np.concatenate([np.asarray(qvel).squeeze(), action_other])
-
             return super().step(final_action)
 
     return PandaIK
