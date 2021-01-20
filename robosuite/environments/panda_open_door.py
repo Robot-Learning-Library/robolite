@@ -47,10 +47,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     minimal_offset = 1e-5
     parameters_spec = {
         **PandaEnv.parameters_spec,
-        'knob_friction': [0.2, 1.],
-        # 'knob_friction': [0.5, 1.], # the friction of gripper pads are 1, setting knob friction is easier
-        'hinge_stiffness': [0.1, 3.],
-        # 'hinge_stiffness': [0.1, 3],  # the stiffness value affects significantly on door behaviour, general range in 0-100
+       'knob_friction': [0.2, 1.], # the friction of gripper pads are 1, setting knob friction is easier
+        'hinge_stiffness': [0.1, 3.],  # the stiffness value affects significantly on door behaviour, general range in 0-100
         'hinge_damping': [0.1, 0.3],
         'hinge_frictionloss': [0., 1.,],
         'door_mass': [50, 150],  # the door mass does not affect too much in this task
@@ -58,6 +56,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         'table_size_0': [0.8, 0.8+minimal_offset],
         'table_size_1': [1.8, 1.8+minimal_offset],
         'table_size_2': [0.9, 0.9+minimal_offset],
+        'table_position_offset_x': [-0.05, 0.05], # randomization of table position in x-axis
+        'table_position_offset_y': [-0.05, 0.05], # randomization of table position in y-axis
     }
     
     def reset_props(self,
@@ -68,6 +68,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
                     door_mass = 100., 
                     knob_mass = 5.,
                     table_size_0=0.8, table_size_1=1.8, table_size_2=0.9,
+                    table_position_offset_x = 0.05,
+                    table_position_offset_y = 0.05, 
                     **kwargs):
         
         self.konb_friction = knob_friction
@@ -76,8 +78,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         self.hinge_frictionloss = hinge_frictionloss
         self.door_mass = door_mass
         self.knob_mass = knob_mass
-
         self.table_full_size = (table_size_0, table_size_1, table_size_2)
+        self.table_position_offset = np.array([table_position_offset_x, table_position_offset_y, 0.])
         super().reset_props(**kwargs)
         self.params_dict.update({
             'knob_friction': knob_friction,
@@ -89,6 +91,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             'table_size_0': table_size_0,
             'table_size_1': table_size_1,
             'table_size_2': table_size_2,
+            'table_position_offset_x': table_position_offset_x,
+            'table_position_offset_y': table_position_offset_y,
         })
 
     def __init__(self,
@@ -107,8 +111,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
 
             reward_shaping (bool): if True, use dense rewards.
 
-            placement_initializer (ObjectPositionSampler instance): 
-f provided, will
+            placement_initializer (ObjectPositionSampler instance): if provided, will
                 be used to place objects on every reset, else a UniformRandomSampler
                 is used by default.
 
@@ -134,7 +137,7 @@ f provided, will
         else:
             # self.placement_initializer = UniformRandomSampler(
             #     x_range=[-0.1, 0.1],
-            #     y_range=[-0.1, 0.1],
+            #     y_range=[-0.1, 0.1],0.05
             #     ensure_object_boundary_in_range=False,
             #     z_rotation=None,
             # )
@@ -153,6 +156,7 @@ f provided, will
         self.hinge_stiffness = 0.1
         self.hinge_damping =  0.1
         self.hinge_frictionloss = 0.1
+        self.table_position_offset = np.array([0., 0., 0.])
 
         self.door_mass = 100.
         self.knob_mass = 5.
@@ -176,8 +180,11 @@ f provided, will
         if self.use_indicator_object:
             self.mujoco_arena.add_pos_indicator()
 
-        # The panda robot has a pedestal, we want to align it with the table
-        self.mujoco_arena.set_origin([-0.9, 0.5, 0]) # the vector is the relative distance from tabel top center to the robot base
+        # Set the table position with certain randomness in x- and y-axis for better sim2real,
+        # note that this is not observation noise, but different env settings,
+        central_pos = np.array([-0.9, 0.5, 0])
+        central_pos = central_pos + self.table_position_offset
+        self.mujoco_arena.set_origin(central_pos) # the vector is the relative distance from tabel top center to the robot base
         
         self.mujoco_objects = None
 
@@ -326,6 +333,7 @@ f provided, will
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
+        # print(self.sim.data.sensordata[:6])
         # print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues: force tactile
         # print(self.sim.data.sensordata[6:]) # Gives array of all sensorvalues: touch tactile
 
@@ -409,6 +417,7 @@ f provided, will
             di['joint_vel_in_world'] = self.sim.data.qvel[self._ref_joint_pos_indexes]  # dim=7
             # di['finger_knob_dist'] = self.get_hand2knob_dist_vec()  # dim=3, not used in reality due to the uncertain position of hand_visual
             di['knob_pos_in_world'] = self.get_knob_pos() # dim=3, position of center of the knob
+            print('knob pos: ', di['knob_pos_in_world'])
             di['knob_pos_to_eef'] = di['knob_pos_in_world'] - di['eef_pos_in_world']   # dim=3, position of center of the knob relative to eef
             di['door_hinge_angle'] = [self.sim.data.get_joint_qpos("hinge0")]  # dim=1
             di['gripper_width'] = [self.get_gripper_state()]  # dim=1

@@ -346,6 +346,10 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         if np.min([np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([-np.pi, 0., 0.])),
             np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([np.pi, 0., 0.]))]) > ori_threshold:
             done = True
+        
+        # success case
+        if self._check_success():
+            done = True
         return obs, reward, done, info
 
     def world2eef(self, world):
