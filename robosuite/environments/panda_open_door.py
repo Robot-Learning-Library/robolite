@@ -376,6 +376,26 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
     def world2eef(self, world):
         return self.world_rot_in_eef.dot(world)
 
+    def _joint_limit(self,):
+        """ 
+        Joint position limits (rad) of real robot, reference: 
+        https://frankaemika.github.io/docs/control_parameters.html#control-parameters-specifications 
+        """
+        q_limit_max = np.array([2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973])
+        q_limit_min = np.array([-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973])
+
+        return q_limit_max, q_limit_min
+
+    def check_joint_limit(self, threshold=0.03):
+        """
+        Check whether current joint position is close to the joint limits.
+        """
+        curr_q = self.sim.data.qpos[self._ref_joint_pos_indexes]
+        for i, (q, q_min, q_max) in enumerate(zip(curr_q, *self._joint_limit())):
+            if np.min([np.abs(q-q_min), np.abs(q_max-q)]) < threshold:
+                print("Current {}-th joint position in {} is close to joint limits with threshold {}.".format(i+1, curr_q, threshold))
+
+
     def _get_observation(self):
         """
         Returns an OrderedDict containing observations [(name_string, np.array), ...].
@@ -406,7 +426,6 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
                 di["image"], di["depth"] = camera_obs
             else:
                 di["image"] = camera_obs
-
         # low-level object information
         if self.use_object_obs:
             eef_pos_in_world = self.sim.data.get_body_xpos("right_hand")
@@ -420,6 +439,9 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             di['knob_pos_to_eef'] = di['knob_pos_in_world'] - di['eef_pos_in_world']   # dim=3, position of center of the knob relative to eef
             di['door_hinge_angle'] = [self.sim.data.get_joint_qpos("hinge0")]  # dim=1
             di['gripper_width'] = [self.get_gripper_state()]  # dim=1
+
+            # self.check_joint_limit()
+
             if self.full_obs: # dim=25
                 task_state = np.concatenate([
                                         di['eef_pos_in_world'], 
