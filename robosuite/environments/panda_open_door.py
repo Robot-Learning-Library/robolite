@@ -417,7 +417,6 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             di['joint_vel_in_world'] = self.sim.data.qvel[self._ref_joint_pos_indexes]  # dim=7
             # di['finger_knob_dist'] = self.get_hand2knob_dist_vec()  # dim=3, not used in reality due to the uncertain position of hand_visual
             di['knob_pos_in_world'] = self.get_knob_pos() # dim=3, position of center of the knob
-            print('knob pos: ', di['knob_pos_in_world'])
             di['knob_pos_to_eef'] = di['knob_pos_in_world'] - di['eef_pos_in_world']   # dim=3, position of center of the knob relative to eef
             di['door_hinge_angle'] = [self.sim.data.get_joint_qpos("hinge0")]  # dim=1
             di['gripper_width'] = [self.get_gripper_state()]  # dim=1
