@@ -329,8 +329,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             reward_tactile = 0.
 
         # a summary of reward values
-        # reward = open_multi*reward_door_open + dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile  
-        reward = dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile    # only an approaching policy
+        reward = open_multi*reward_door_open + dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile  
+        # reward = dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile    # only an approaching policy
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
