@@ -48,11 +48,11 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         'table_friction_0': [0.0, minimal_offset],
         'table_friction_1': [0.0, minimal_offset],
         'table_friction_2': [0.0, minimal_offset],
-        'boxobject_size_0': [0.0298, 0.0302],
-        'boxobject_size_1': [0.0298, 0.0302],
-        'boxobject_size_2': [0.0298, 0.0302],
-        'boxobject_friction_0': [0.1, 0.4],  # tangential
-        'boxobject_friction_1': [0.0, 0.02],  # torsional
+        'boxobject_size_0': [0.025, 0.05], # default [0.0298, 0.0302]
+        'boxobject_size_1': [0.025, 0.05],
+        'boxobject_size_2': [0.025, 0.05],
+        'boxobject_friction_0': [0.1, 0.9],  # tangential, default [0.1, 0.4]
+        'boxobject_friction_1': [0.0, 0.2],  # torsional, default [0.0, 0.02]
         'boxobject_friction_2': [0.00005, 0.00015],  # rolling
         'boxobject_density_1000': [0.6, 1.4],
     }
