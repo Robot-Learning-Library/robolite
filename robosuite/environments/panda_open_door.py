@@ -271,7 +271,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         #     print('Contact {}: {} and {}'.format(i, self.sim.model.geom_id2name(c.geom1), self.sim.model.geom_id2name(c.geom2)))
         # self.ee_ori = quat2euler(mat2quat(self._right_hand_orn))
 
-        open_multi = 1.
+        open_multi = 5.
         dis_multi = 0.1
         ori_multi = 0.05
         grasp_multi = 1.
@@ -316,7 +316,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
                 touch_right_finger = True
             if c.geom1 == self.knob_geom_id and c.geom2 in self.r_finger_geom_ids:
                 touch_right_finger = True
-        if touch_left_finger and touch_right_finger: # the grasping detection here (when True) not only requires the knob to be grasped by the gripper, but also in a good gesture
+        if touch_left_finger and touch_right_finger and self.get_gripper_state()>0.005: # the grasping detection here (when True) not only requires the knob to be grasped by the gripper, but also in a good gesture
             self.grasp_state = True
             reward_grasp += 0.1
         else:
@@ -327,7 +327,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             reward_tactile = np.sum(self._get_tactile_singals()) 
         else:
             reward_tactile = 0.
-
+        # print(reward_door_open, reward_dist, reward_ori, reward_grasp, reward_tactile)
         # a summary of reward values
         reward = open_multi*reward_door_open + dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile  
         # reward = dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile    # only an approaching policy
