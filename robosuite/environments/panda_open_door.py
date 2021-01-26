@@ -182,7 +182,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
 
         # Set the table position with certain randomness in x- and y-axis for better sim2real,
         # note that this is not observation noise, but different env settings,
-        central_pos = np.array([-0.9, 0.5, 0])
+        central_pos = np.array([-0.84, 0.5, 0])
         central_pos = central_pos + self.table_position_offset
         self.mujoco_arena.set_origin(central_pos) # the vector is the relative distance from tabel top center to the robot base
         
@@ -330,7 +330,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # print(reward_door_open, reward_dist, reward_ori, reward_grasp, reward_tactile)
         # a summary of reward values
         reward = open_multi*reward_door_open + dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile  
-        # reward = dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile    # only an approaching policy
+        # reward = dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile    # only a reaching policy
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
