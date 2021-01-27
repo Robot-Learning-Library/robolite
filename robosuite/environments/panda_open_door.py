@@ -229,6 +229,14 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         ]
         self.knob_geom_id = self.sim.model.geom_name2id("cabinet_knob")
 
+    def _jac_geom(self, geom_name):
+        jacp = self.sim.data.get_geom_jacp(geom_name)  # 3-dimensional position
+        jacr = self.sim.data.get_geom_jacr(geom_name)  # 3-dimensional orientation
+        jacp = jacp.reshape(3, -1)  
+        jacr = jacr.reshape(3, -1)
+        # print(np.vstack((jacp, jacr)))
+        return np.vstack((jacp[:, :7], jacr[:, :7]))
+
     def _reset_internal(self):
         """
         Resets simulation internal configurations.

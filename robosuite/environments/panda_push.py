@@ -227,7 +227,9 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         # reset joint positions
         init_pos = self.mujoco_robot.init_qpos
         init_pos += np.random.randn(init_pos.shape[0]) * 0.02  # a good simulation pose
-        init_pos = [1.57103,0.144537, 0 ,-2.97299, 0, 3.11744,0.785635]  # matched with real pose
+        # init_pos = [1.57103,0.144537, 0 ,-2.97299, 0, 3.11744,0.785635]  # matched with real pose
+        init_pos = [1.58992658e+00,  2.97199045e-01,  1.89987854e-05, -2.84390673e+00, 1.73368590e-03,  3.13953742e+00,  8.02213039e-01] # a position preventing stuck
+        
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
         # shut the gripper
         self.sim.data.qpos[self._ref_joint_gripper_actuator_indexes] = np.array([0., -0.])
@@ -340,7 +342,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         """ explicitly shut the gripper """
         joined_action = np.append(action, [1.])
         obs, reward, done, info = super().step(joined_action)
-        
+
         # keep the gripper facing downwards (sometimes it's not due to the imperfect IK)
         ori_threshold = 0.05  # threshold of orientation error for setting done=True
         if np.min([np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([-np.pi, 0., 0.])),

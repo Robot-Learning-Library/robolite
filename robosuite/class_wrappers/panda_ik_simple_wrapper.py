@@ -94,11 +94,11 @@ def conj_quat(quat):
     functions.mju_negQuat(res, quat)
     return res
 
-def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=1., pose_mat=None, limit_range=None):  # TODO limit_range
+def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, gripper=False, max_action=1., pose_mat=None, limit_range=None):  # TODO limit_range
     ik_dof = 2 if fix_z is not None else 3
-    if rotation:   # if allowing rotation control for EE, add 3 dims of euler for EE orientation
+    if rotation is True:   # if allowing rotation control for EE, add 3 dims of euler for EE orientation
         ik_dof += 3
-    
+
     wrapping_dof = (Env.dof - 7) + ik_dof
     
     class PandaIK(change_dof(Env, wrapping_dof)):
@@ -170,29 +170,32 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, max_action=1., po
                 print('Action Shape Error')
             action = action_all[:ik_dof]  # the first 2 or 3 dims are position, and the last 3 dims are orientation (euler)
             action_other = action_all[ik_dof:]  # gripper control, etc
-
             action = np.clip(action, np.ones(ik_dof) * -1, np.ones(ik_dof) * 1) * max_action   # action range: [-max_action, max_action]
-
             # ee_curr = self.get_geom_posquat("hand_visual")  # does not give a fully correct control: correct for position and x- and y-rotation, wrong for z-rotation
-            ee_curr = np.concatenate([self._right_hand_pos, mat2quat(self._right_hand_orn)])  # gives correct control for both opsition and orientation        
+            curr_quat = mat2quat(self._right_hand_orn)
+            ee_curr = np.concatenate([self._right_hand_pos, curr_quat])  # gives correct control for both opsition and orientation        
 
             if fix_z is not None:
                 z_error = fix_z - ee_curr[2]
                 action = np.concatenate([action, [5.*z_error]])  # add action to z-axis to construct a complete position action vector since input is of 2 dims: set a large proportional gain (5.) to quickly move to fix_z
-
-            if rotation is False:
-                ee_tget = np.concatenate([action+ee_curr[:-4], euler2quat([-np.pi, 0., 0.])])  # target orientation: gripper facing downwards
-
-            else: # with rotation control/action
+            
+            if rotation is False: # not control the rotation
+                ee_tget = np.concatenate([action+ee_curr[:-4], curr_quat])
+                # below gives same result as above
+                # action = np.concatenate([action, [0.,0.,0.]])  # add zero rotations to three axis to construct a complete action vector   
+                # ee_tget = action + np.concatenate([ee_curr[:-4], quat2euler(ee_curr[-4:])])
+                # ee_tget = np.concatenate([ee_tget[:-3], euler2quat(ee_tget[-3:])])  # change last 3 dims for orientation from euler to quaternion
+            elif rotation is True: # with rotation control/action (3 dim)
                 current_euler = quat2euler(ee_curr[-4:])  # change last 3 dims for orientation from quaternion to euler
                 ee_tget = action + np.concatenate([ee_curr[:-4], current_euler])
                 ee_tget = np.concatenate([ee_tget[:-3], euler2quat(ee_tget[-3:])])  # change last 3 dims for orientation from euler to quaternion
+            else:  # with a given fixed rotation, 3-dim euler
+                ee_tget = np.concatenate([action+ee_curr[:-4], euler2quat(rotation)])  # target orientation: gripper facing downwards
 
             ee_jac = self.jac_geom("hand_visual")  # get the jacobian w.r.t. a geom with its name
-            # vel = np.hstack(((ee_tget[:3] - ee_curr[:3]) /5,    # divided by 5 to generate small action, but will affect the velocity in simulation
+            # vel = np.hstack(((ee_tget[:3] - ee_curr[:3])/5.,    # divided by 5 to generate small action, but will affect the velocity in simulation
             vel = np.hstack(((ee_tget[:3] - ee_curr[:3]),  
                                 quat2vel(mul_quat(ee_tget[-4:], conj_quat(ee_curr[-4:])), 1)))    # difference of quaternions is calculated with  M^(-1)^T * N: inverse transpose is conjugate 
-
             qvel = np.matmul(np.linalg.pinv(ee_jac), vel.transpose())
             
             final_action = np.concatenate([np.asarray(qvel).squeeze(), action_other])
