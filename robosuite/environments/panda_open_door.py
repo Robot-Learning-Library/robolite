@@ -294,13 +294,13 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         reward_ori = 0.
         if self.door_open_angle < 0.02:
             # A distance reward: minimize the distance between the gripper and door konb when the door is almost closed 
-            reward_dist = 1. - np.tanh(np.linalg.norm(self.get_hand2knob_dist_vec()))
+            reward_dist = -1. - np.tanh(np.linalg.norm(self.get_hand2knob_dist_vec())) # ensure this is penalty, such that openning door is always encouraged
 
             # An orientation reward: make the orientation of gripper horizontal (better for knob grasping) when the door is almost closed 
             fingerEulerDesired =  [0, 0, -np.pi/2]  # horizontal gesture for gripper
             finger_ori = self.get_finger_ori()
             ori_diff = sin_cos_encoding(fingerEulerDesired) - sin_cos_encoding(finger_ori)  # use sin_cos_encoding to avoid value jump in 2PI measure
-            reward_ori = 1. - np.tanh(np.linalg.norm(ori_diff))
+            reward_ori = -1. - np.tanh(np.linalg.norm(ori_diff))  # ensure this is penalty, such that openning door is always encouraged
 
         # grasping reward
         touch_left_finger = False
