@@ -99,7 +99,7 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, gripper=False, ma
     if rotation is True:   # if allowing rotation control for EE, add 3 dims of euler for EE orientation
         ik_dof += 3
 
-    wrapping_dof = (Env.dof - 7) + ik_dof
+    wrapping_dof = (Env.dof - 7) + ik_dof  # dof after IK wrapper, e.g. 7 -> 3, 8 -> 4
     
     class PandaIK(change_dof(Env, wrapping_dof)):
         parameters_spec = {
@@ -134,13 +134,13 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, gripper=False, ma
             self.z_prop_gain = pandaik_z_proportional_gain
             super().reset_props(**kwargs)
 
-        def jac_geom(self, geom_name):
+        def jac_geom(self, geom_name, first_joint_idx):
             jacp = self.sim.data.get_geom_jacp(geom_name)  # 3-dimensional position
             jacr = self.sim.data.get_geom_jacr(geom_name)  # 3-dimensional orientation
             jacp = jacp.reshape(3, -1)  
             jacr = jacr.reshape(3, -1)
             # print(np.vstack((jacp, jacr)))
-            return np.vstack((jacp[:, :7], jacr[:, :7]))
+            return np.vstack((jacp[:, first_joint_idx:first_joint_idx+7], jacr[:, first_joint_idx:first_joint_idx+7]))
 
         def get_geom_posquat(self, name):
             rot = self.sim.data.get_geom_xmat(name)
@@ -156,9 +156,13 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, gripper=False, ma
                 Take the input of all action, return a processed action.
 
                 The first ik_dof dims of action are for EE control, which will be transformed into IK actions on 7 joints: 
-                If fixed_z, the first two dimensions are for x- and y-position;
-                if not, the first three dimensions are for x-, y- and z-position.
-                If rotation is True, the rest three dimensions (Euler) in ik_dof are for orientation control.
+
+                * If fixed_z, the first two dimensions are for x- and y-position;
+                    if not, the first three dimensions are for x-, y- and z-position.
+
+                * If rotation is True, the rest three dimensions (Euler) in ik_dof are for orientation control;
+                    if it is False, the rotation is not controlled by action but trying to keep the same as the current;
+                    if it is neither True or False, it is a list/array containing the specified rotation angles, which will be fixed.
 
                 The other dimensions of input action are not for EE control, but for like gripper control, 
                 which remains the same (no need for IK transformation).
@@ -168,6 +172,7 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, gripper=False, ma
                 assert(action_all.shape == (self.dof, ))
             except:
                 print('Action Shape Error')
+            # print(action_all)
             action = action_all[:ik_dof]  # the first 2 or 3 dims are position, and the last 3 dims are orientation (euler)
             action_other = action_all[ik_dof:]  # gripper control, etc
             action = np.clip(action, np.ones(ik_dof) * -1, np.ones(ik_dof) * 1) * max_action   # action range: [-max_action, max_action]
@@ -191,12 +196,14 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, gripper=False, ma
                 ee_tget = np.concatenate([ee_tget[:-3], euler2quat(ee_tget[-3:])])  # change last 3 dims for orientation from euler to quaternion
             else:  # with a given fixed rotation, 3-dim euler
                 ee_tget = np.concatenate([action+ee_curr[:-4], euler2quat(rotation)])  # target orientation: gripper facing downwards
+            first_joint_idx = self._ref_joint_gripper_actuator_indexes[0] - 7 # in different envs the first joint idx may be different
 
-            ee_jac = self.jac_geom("hand_visual")  # get the jacobian w.r.t. a geom with its name
+            ee_jac = self.jac_geom("hand_visual", first_joint_idx)  # get the jacobian w.r.t. a geom with its name
             # vel = np.hstack(((ee_tget[:3] - ee_curr[:3])/5.,    # divided by 5 to generate small action, but will affect the velocity in simulation
             vel = np.hstack(((ee_tget[:3] - ee_curr[:3]),  
                                 quat2vel(mul_quat(ee_tget[-4:], conj_quat(ee_curr[-4:])), 1)))    # difference of quaternions is calculated with  M^(-1)^T * N: inverse transpose is conjugate 
             qvel = np.matmul(np.linalg.pinv(ee_jac), vel.transpose())
+            # print(ee_jac, ee_tget)
             
             final_action = np.concatenate([np.asarray(qvel).squeeze(), action_other])
             return super().step(final_action)
