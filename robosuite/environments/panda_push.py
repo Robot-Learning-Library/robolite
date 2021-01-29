@@ -92,6 +92,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
                  reward_shaping=True,
                  placement_initializer=None,
                  object_obs_process=True,
+                 face_downwards=True,
                  **kwargs):
         """
         Args:
@@ -114,6 +115,9 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
 
         # reward configuration
         self.reward_shaping = reward_shaping
+
+        # whether force the gripper to face downwards
+        self.face_downwards = face_downwards
 
         object_ini_area = [0.275, 0.15]  # length: x, width: y
         goal_pos_area = [0.225, 0.15]
@@ -343,11 +347,11 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         joined_action = np.append(action, [1.])
         obs, reward, done, info = super().step(joined_action)
 
-        # keep the gripper facing downwards (sometimes it's not due to the imperfect IK)
-        ori_threshold = 0.05  # threshold of orientation error for setting done=True
-        if np.min([np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([-np.pi, 0., 0.])),
-            np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([np.pi, 0., 0.]))]) > ori_threshold:
-            done = True
+        if self.face_downwards: # keep the gripper facing downwards (sometimes it's not due to the imperfect IK)
+            ori_threshold = 0.05  # threshold of orientation error for setting done=True
+            if np.min([np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([-np.pi, 0., 0.])),
+                np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([np.pi, 0., 0.]))]) > ori_threshold:
+                done = True
         
         # success case
         if self._check_success():
