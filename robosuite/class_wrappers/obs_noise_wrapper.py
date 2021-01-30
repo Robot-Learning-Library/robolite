@@ -5,7 +5,8 @@ def obs_noise_wrapper(Env, names, range_var, default):
         assert(all(name in obs for name in names))
         for name in names:
             var = getattr(env, 'obs_noise_' + name, default)
-            obs[name] = obs[name] + np.random.normal(scale=var, size=obs[name].shape)
+            noise = np.random.normal(scale=var, size=np.array(obs[name]).shape)
+            obs[name] = obs[name] + noise
         return obs
 
     
