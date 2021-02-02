@@ -246,7 +246,10 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # reset joint positions
         # self.sim.data.qpos[self._ref_joint_pos_indexes] =  [-2.38552629,  0.11408278, -0.43481802, -1.64875619,  1.77681087,  3.37056892, -0.8571096 ]
         # self.sim.data.qpos[self._ref_joint_pos_indexes] =  [-2.73830829,  0.23346824, -0.09714798, -1.63363,  1.66059114,  3.52977957, -0.83828194] # a closer position
-        self.sim.data.qpos[self._ref_joint_pos_indexes] =  [-2.04294938, 0.18509384, -0.89699324, -1.75267233,  1.64237899,  3.33180868, -0.70387438] # a position far from limits and close to knob
+        scale = 0.5
+        noise = np.random.uniform(-scale, scale, 7)
+        ini_pos = np.array([-2.04294938, 0.18509384, -0.89699324, -1.75267233,  1.64237899,  3.33180868, -0.70387438])  # a position far from limits and close to knob
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = ini_pos + noise
         # for test
         # self.sim.data.qpos[self._ref_joint_pos_indexes] =  [1.58992658e+00,  2.97199045e-01,  1.89987854e-05, -2.84390673e+00, 1.73368590e-03,  3.13953742e+00,  8.02213039e-01]
         # open the gripper
