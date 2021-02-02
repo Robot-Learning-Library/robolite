@@ -74,7 +74,7 @@
 				<inertial pos="0 0 0" quat="0.707107 0 0 0.707107" mass="0.199" diaginertia="0.028487 0.020509 0.0087724" />
 				<joint name="door_to_knob" pos="0 0 0" damping="0.09" axis="0 0 1" range="0.0 0.001"/>
 				<geom friction="1 0 0" pos="-0.2175 0.0055 0.217" condim="4" name='cabinet_knob' type="mesh" contype="1" conaffinity="1" group="1" rgba="0 0 0 1" mesh="cabinet_knob" />
-				<geom name='center_cabinet_knob' type="cylinder" conaffinity="0" fromto="-0.2051 0.064 0.363  -0.205 0.064 0.363" size="0.0000001" />
+				<geom name='center_cabinet_knob' type="cylinder" conaffinity="0" fromto="-0.2051 0.064 0.363  -0.205 0.064 0.363" size="0.00001" rgba="1 0 0 1" group="1"/>
 
 			</body>
         </body>
