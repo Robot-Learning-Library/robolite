@@ -246,7 +246,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # reset joint positions
         # self.sim.data.qpos[self._ref_joint_pos_indexes] =  [-2.38552629,  0.11408278, -0.43481802, -1.64875619,  1.77681087,  3.37056892, -0.8571096 ]
         # self.sim.data.qpos[self._ref_joint_pos_indexes] =  [-2.73830829,  0.23346824, -0.09714798, -1.63363,  1.66059114,  3.52977957, -0.83828194] # a closer position
-        scale = 0.5
+        scale = 0.
         noise = np.random.uniform(-scale, scale, 7)
         ini_pos = np.array([-2.04294938, 0.18509384, -0.89699324, -1.75267233,  1.64237899,  3.33180868, -0.70387438])  # a position far from limits and close to knob
         self.sim.data.qpos[self._ref_joint_pos_indexes] = ini_pos + noise
@@ -336,8 +336,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             reward_tactile = 0.
         # print(reward_door_open, reward_dist, reward_ori, reward_grasp, reward_tactile)
         # a summary of reward values
-        reward = open_multi*reward_door_open + dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile  
-        # reward = open_multi*reward_door_open + grasp_multi*reward_grasp + tac_multi*reward_tactile  # only a open-door policy
+        # reward = open_multi*reward_door_open + dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile  
+        reward = open_multi*reward_door_open + grasp_multi*reward_grasp + tac_multi*reward_tactile  # only a open-door policy
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
