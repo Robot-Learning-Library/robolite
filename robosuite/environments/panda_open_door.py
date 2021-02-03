@@ -283,6 +283,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         ori_multi = 0.05
         grasp_multi = 1.
         tac_multi = 0.01
+        force_multi = 0.1
 
         reward = 0.
         self.door_open_angle = abs(self.sim.data.get_joint_qpos("hinge0"))
@@ -334,10 +335,14 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
             reward_tactile = np.sum(self._get_tactile_singals()) 
         else:
             reward_tactile = 0.
+
+        # additional reward for minimizing force
+        ee_force = np.abs(self.sim.data.get_sensor('force_ee'))
+        reward_force = np.tanh(1./(ee_force + 1e-5))
         # print(reward_door_open, reward_dist, reward_ori, reward_grasp, reward_tactile)
         # a summary of reward values
         # reward = open_multi*reward_door_open + dis_multi*reward_dist + ori_multi*reward_ori + grasp_multi*reward_grasp + tac_multi*reward_tactile  
-        reward = open_multi*reward_door_open + grasp_multi*reward_grasp + tac_multi*reward_tactile  # only a open-door policy
+        reward = open_multi*reward_door_open + grasp_multi*reward_grasp + tac_multi*reward_tactile + force_multi*reward_force # only a open-door policy
 
         # print('force: ', self.sim.data.get_sensor('force_ee'))  # Gives one value
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
