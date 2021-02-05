@@ -184,7 +184,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
 
         # Set the table position with certain randomness in x- and y-axis for better sim2real,
         # note that this is not observation noise, but different env settings,
-        central_pos = np.array([-0.84, 0.5, 0])
+        central_pos = np.array([-0.84, 0.5, -0.03])  # match with reality
         central_pos = central_pos + self.table_position_offset
         self.mujoco_arena.set_origin(central_pos) # the vector is the relative distance from tabel top center to the robot base
         
