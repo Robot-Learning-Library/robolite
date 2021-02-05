@@ -14,7 +14,7 @@ from robosuite.models.robots import Panda
 from robosuite.models.tasks import TableTopTask, UniformRandomSamplerObjectSpecific
 
 from robosuite.class_wrappers import change_dof
-
+import matplotlib.pyplot as plt
 
 # https://stackoverflow.com/a/13849249/11815215
 
@@ -348,6 +348,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         # print('torque: ', self.sim.data.get_sensor('torque_ee'))  # Gives one value
         # print(self.sim.data.sensordata[:6])
         # print(self.sim.data.sensordata[7::3]) # Gives array of all sensorvalues: force tactile
+        # print(self._get_tactile_singals())
         # print(self.sim.data.sensordata[6:]) # Gives array of all sensorvalues: touch tactile
 
         self.done = self._check_success()
@@ -368,7 +369,8 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
         """
         Get the tactile signals from sensors. 
 
-        Params:
+        Params:        # print(self._get_tactile_singals())
+
             contact_threshold: the threshold of normal contact force for being contact;
             Binary: whether using binary representation of contact info or not.
 
@@ -483,7 +485,7 @@ class PandaOpenDoor(change_dof(PandaEnv, 8, 8)): # keep the dimension to control
                 #                         di['knob_pos_to_eef'],
                 #                         di['door_hinge_angle'],
                 #                     ])
-
+        di['task_state_no_tactile'] = task_state
         if self.use_tactile:
             di['tactile'] = self._get_tactile_singals()
             task_state = np.concatenate((task_state, di['tactile']))
