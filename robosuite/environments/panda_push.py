@@ -352,7 +352,7 @@ class PandaPush(change_dof(PandaEnv, 7, 8)): # don't need to control a gripper
         obs, reward, done, info = super().step(joined_action)
 
         if self.face_downwards: # keep the gripper facing downwards (sometimes it's not due to the imperfect IK)
-            ori_threshold = 0.05  # threshold of orientation error for setting done=True
+            ori_threshold = 0.1  # threshold of orientation error for setting done=True
             if np.min([np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([-np.pi, 0., 0.])),
                 np.linalg.norm(mat2euler(self._right_hand_orn) - np.array([np.pi, 0., 0.]))]) > ori_threshold:
                 done = True
