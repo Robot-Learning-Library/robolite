@@ -97,15 +97,17 @@ def conj_quat(quat):
 def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, gripper=False, max_action=1., pose_mat=None, limit_range=None, modify_dof=True):  # TODO limit_range
     ik_dof = 2 if fix_z is not None else 3
         
-    if not gripper:
-        Env.dof = Env.dof - 1
+    if Env.dof > 7 and not gripper:  # when has the freedom of gripper but not intend to use it
+        real_dof = Env.dof - 1
+    else:
+        real_dof = Env.dof
 
     if rotation is True:   # if allowing rotation control for EE, add 3 dims of euler for EE orientation
         ik_dof += 3
     if modify_dof: # only in very special case, this is set to be False, e.g. a FK control task but sometimes using IK
-        wrapping_dof = (Env.dof - 7) + ik_dof  # dof after IK wrapper, e.g. 7 -> 3, 8 -> 4
+        wrapping_dof = (real_dof - 7) + ik_dof  # dof after IK wrapper, e.g. 7 -> 3, 8 -> 4
     else:
-        wrapping_dof = Env.dof
+        wrapping_dof = real_dof
 
 
     class PandaIK(change_dof(Env, wrapping_dof)):
@@ -179,7 +181,7 @@ def panda_ik_simple_wrapper(Env, rotation = False, fix_z=None, gripper=False, ma
                 return  super().step(action_all)
             else:
                 try:
-                    assert(action_all.shape == ((Env.dof - 7) + ik_dof, ))
+                    assert(action_all.shape == ((real_dof - 7) + ik_dof, ))
                 except:
                     print('Action Shape Error')
                 # print(action_all)
