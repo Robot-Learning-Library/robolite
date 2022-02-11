@@ -8,6 +8,9 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+## Projects Based on This Environment:
+1. [Sim-to-Real Transfer for Robotic Manipulation with Tactile Sensory Zihan Ding, Ya-Yen Tsai, Wang Wei Lee, Bidan Huang International Conference on Intelligent Robots and Systems (IROS) 2021](https://github.com/quantumiracle/Robotic_Door_Opening_with_Tactile_Simulation)
+2. [Not Only Domain Randomization: Universal Policy with Embedding System Identification.](https://github.com/quantumiracle/UPESI)
 ----
 
 # Surreal Robotics Suite
