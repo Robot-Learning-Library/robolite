@@ -1,5 +1,11 @@
 # Robolite
-This is a fork of [Surreal Robotics Suite](https://github.com/StanfordVL/robosuite) that enables abundant support to **domain randomization**.
+This is a fork of [Surreal Robotics Suite](https://github.com/StanfordVL/robosuite) that enables support to **domain randomization** and **inverse kinematics (IK)**.
+
+## Installation:
+Just clone this repo and:
+```
+pip install -e .
+```
 
 ----
 
