@@ -4,6 +4,7 @@ This is a fork of [Surreal Robotics Suite](https://github.com/StanfordVL/robosui
 ## Installation:
 Just clone this repo and:
 ```
+pip install -r requirements.txt
 pip install -e .
 ```
 
